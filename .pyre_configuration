@@ -1,0 +1,27 @@
+{
+  "site_package_search_strategy": "pep561",
+  "search_path": [
+    {
+      "site-package": "megfile"
+    },
+    {
+      "site-package": "orjson"
+    },
+    {
+      "site-package": "msgpack"
+    },
+    {
+      "site-package": "msgpack_numpy"
+    },
+    {
+      "site-package": "numpy"
+    }
+  ],
+  "source_directories": [
+    {
+      "import_root": ".",
+      "source": "megstore"
+    }
+  ],
+  "strict": false
+}

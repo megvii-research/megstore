@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "megstore"
+dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
+description = "Common Formats. Uncommon Speed."
+authors = [
+    { name = "megvii-reng", email = "megvii-reng@googlegroups.com" }
+]
+urls = { Homepage = "https://github.com/megvii-research/megstore" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+include = ["megstore*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "megstore.version.VERSION"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
+
+[tool.setuptools.dynamic.dependencies]
+file = ["requirements.txt"]
+
+[tool.setuptools.dynamic.optional-dependencies]
+msgpack = { file = ["requirements-msgpack.txt"] }
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+ignore = [
+    "E402", # imports not on top of file
+    "PGH004", # Use specific rule codes when using noqa
+]
+select = ["E", "F", "W"]
+extend-select = ["I"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/**/*.py" = [
+    "F811",  # redefinition of unused name
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+[tool.pytype]
+
+# Space-separated list of files or directories to exclude.
+exclude = [
+    "tests/"
+]
+# Space-separated list of files or directories to process.
+inputs = [
+    "./megstore"
+]
+# Keep going past errors to analyze as many files as possible.
+keep_going = true
+
+# All pytype output goes here.
+output = ".pytype_output"
+
+# Paths to source code directories, separated by ':'.
+pythonpath = "."
+
+# Comma separated list of error names to ignore.
+disable = [
+    "pyi-error"
+]
+# Don't report errors.
+report_errors = true
+
+# Experimental: solve unknown types to label with structural types.
+protocols = false
+
+# Experimental: Only load submodules that are explicitly imported.
+strict_import = false
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover"
+]
+
+[tool.mutmut]
+paths_to_mutate = "megstore/"
+backup = false
+runner = "pytest --cov=megstore --cov-config pyproject.toml tests/"
+tests_dir = "tests/"
+dict_synonyms = "Struct,NamedStruct"
