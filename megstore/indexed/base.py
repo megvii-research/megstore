@@ -262,6 +262,7 @@ class BaseIndexedWriter(BaseWriter[T], ABC):
 
 class BaseIndexHandler(Appendable[VT], SliceAccessible[VT], Countable, Handler):
     DEFAULT_PAGE_SIZE = 16 * 2**10  # 16K
+
     def __init__(
         self, file_object: BinaryIO, *, close_fileobj_when_close: bool = False
     ):
