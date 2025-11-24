@@ -19,13 +19,11 @@ from megstore.indexed.base import (
 )
 from megstore.interface import Appendable, BaseWriter, OpenBinaryIO, T
 from megstore.utils import full_error_message, smart_limited_seekable_open
-from megstore.utils.compat_msgpack import (
-    DEFAULT_MAX_BUFFER_SIZE,
-    OutOfData,
-    Packer,
-    Unpacker,
-    UnpackValueError,
-)
+
+try:
+    from megstore.utils import compat_msgpack
+except ImportError:
+    compat_msgpack = None
 
 __all__ = [
     "IndexedMsgpackReader",
@@ -43,6 +41,14 @@ MSGPACK_ARRAY32_LENGTH_SIZE = struct.calcsize(MSGPACK_ARRAY32_LENGTH_FORMAT)
 MSGPACK_ARRAY32_HEADER_SIZE = MSGPACK_ARRAY32_FLAG_SIZE + MSGPACK_ARRAY32_LENGTH_SIZE
 
 
+def _ensure_compat_msgpack():
+    if compat_msgpack is None:
+        raise ImportError(
+            "`msgpack` is required to use megstore.indexed.msgpack, "
+            "please install it with `pip install 'megstore[msgpack]'`"
+        )
+
+
 class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexable
     """Random reading for msgpack files
 
@@ -50,12 +56,20 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
     support random reading
     """
 
-    def _read_array_header(self, unpacker: Unpacker) -> int:
+    def __init__(self, *args, **kwargs):
+        _ensure_compat_msgpack()
+
+        super().__init__(*args, **kwargs)
+
+    def _read_array_header(
+        self,
+        unpacker: "compat_msgpack.Unpacker",  # pytype: disable=attribute-error
+    ) -> int:
         try:
             return unpacker.read_array_header()
-        except OutOfData:
+        except compat_msgpack.OutOfData:
             return 0
-        except UnpackValueError as error:
+        except compat_msgpack.UnpackValueError as error:
             # Assuming the msgpack file contains msgpack arrays,
             # raise this exception when reading non-array header
             raise ValueError(
@@ -92,7 +106,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
                     unpacker.skip()
                 offsets.append(current_offset)
                 current_offset = unpacker.tell()
-        except OutOfData:
+        except compat_msgpack.OutOfData:
             # Record length exceeds actual length, only return index of
             # actually read values, and the last tell() of unpacker
             return current_offset
@@ -115,7 +129,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
         unpacker = self._get_msgpack_unpacker(self._file_object, max_buffer_size=size)
         try:
             value = unpacker.unpack()
-        except OutOfData:
+        except compat_msgpack.OutOfData:
             raise ValueError(
                 "out of data: %r, index: %d, offset: %d" % (self.name, index, offset)
             )
@@ -148,7 +162,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
         try:
             for index in range(start_index, end_index):
                 yield unpacker.unpack()
-        except OutOfData:
+        except compat_msgpack.OutOfData:
             raise ValueError(
                 "out of data: %r, index: %d, offset: %d ~ %d"
                 % (self.name, index, start_offset, end_offset)
@@ -156,17 +170,19 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
 
     @classmethod
     def _get_msgpack_unpacker(
-        cls, file_object: BinaryIO, max_buffer_size: int = DEFAULT_MAX_BUFFER_SIZE
-    ) -> Unpacker:
+        cls, file_object: BinaryIO, max_buffer_size: Optional[int] = None
+    ) -> "compat_msgpack.Unpacker":  # pytype: disable=attribute-error
         """Get an Unpacker object created with the current instance's msgpack stream
 
         :param max_buffer_size: Maximum buffer size of Unpacker object (bytes),
             default None, if specified, the number should be **> 0**
         :returns: Unpacker object
         """
-        if max_buffer_size > DEFAULT_MAX_BUFFER_SIZE:
-            max_buffer_size = DEFAULT_MAX_BUFFER_SIZE
-        unpacker = Unpacker(file_object, max_buffer_size=max_buffer_size)
+        if max_buffer_size is None:
+            max_buffer_size = compat_msgpack.DEFAULT_MAX_BUFFER_SIZE
+        if max_buffer_size > compat_msgpack.DEFAULT_MAX_BUFFER_SIZE:
+            max_buffer_size = compat_msgpack.DEFAULT_MAX_BUFFER_SIZE
+        unpacker = compat_msgpack.Unpacker(file_object, max_buffer_size=max_buffer_size)
         return unpacker
 
 
@@ -189,12 +205,14 @@ class IndexedMsgpackWriter(BaseWriter[T], Countable):  # pytype: disable=not-ind
         :param close_fileobj_when_close: When ``True``, will close the stream on exit;
             when ``False``, will not close the stream
         """
+        _ensure_compat_msgpack()
+
         super().__init__(
             fp_msgpack,
             append_mode=append_mode,
             close_fileobj_when_close=close_fileobj_when_close,
         )
-        self._packer = Packer()
+        self._packer = compat_msgpack.Packer()
         self._count = self._read_array_header()
 
         mode = "wb"
@@ -321,6 +339,8 @@ class IndexedMsgpackHandler(Appendable[T], IndexedMsgpackReader):
         :param close_fileobj_when_close: When ``True``, close the stream on exit,
             default is ``False``
         """
+        _ensure_compat_msgpack()
+
         super().__init__(
             fp_msgpack,
             fp_index_path,
@@ -337,7 +357,7 @@ class IndexedMsgpackHandler(Appendable[T], IndexedMsgpackReader):
             try:
                 unpacker.skip()
                 self._last_offset = last_offset + unpacker.tell()
-            except OutOfData:
+            except compat_msgpack.OutOfData:
                 pass
         elif self._last_offset in (None, 0):
             # Index or msgpack is empty file stream
@@ -357,7 +377,7 @@ class IndexedMsgpackHandler(Appendable[T], IndexedMsgpackReader):
                 "msgpack length mismatch: %r, header: %d, index: %d"
                 % (self.name, self._count, len(self._offsets))
             )
-        self._packer = Packer(use_bin_type=True, strict_types=False)
+        self._packer = compat_msgpack.Packer(use_bin_type=True, strict_types=False)
 
     @property
     def mode(self) -> str:
@@ -427,6 +447,8 @@ def indexed_msgpack_open(
     :returns: Returns ``megstore.IndexedMsgpackReader`` when mode is ``r``,
         returns ``megstore.IndexedMsgpackWriter`` when mode is ``w``
     """
+    _ensure_compat_msgpack()
+
     if mode not in ("r", "w", "a", "w+", "a+"):
         raise ValueError("unacceptable mode: %r" % mode)
 

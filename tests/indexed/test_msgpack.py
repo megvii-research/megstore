@@ -428,7 +428,7 @@ def test_indexed_msgpack_reader_cross_iter(mocker):
     def fake_unpacker(file_like, **kwargs):
         return msgpack.Unpacker(file_like, read_size=128, **kwargs)
 
-    mocker.patch("megstore.indexed.msgpack.Unpacker", side_effect=fake_unpacker)
+    mocker.patch("megstore.utils.compat_msgpack.Unpacker", side_effect=fake_unpacker)
 
     data = msgpack.packb(list(range(1024)))
 
