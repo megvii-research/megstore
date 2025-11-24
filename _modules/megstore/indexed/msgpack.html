@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>megstore.indexed.msgpack &mdash; megstore  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            megstore
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../readme.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../megstore.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">0.0.1 - 2025.11.25</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megstore">Github</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">megstore</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">megstore.indexed.msgpack</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for megstore.indexed.msgpack</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">array</span><span class="w"> </span><span class="kn">import</span> <span class="n">array</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">getLogger</span> <span class="k">as</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">smart_exists</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megfile.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_content_size</span><span class="p">,</span> <span class="n">is_seekable</span><span class="p">,</span> <span class="n">shadow_copy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">megstore.indexed.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">INDEX_FILE_FORMAT</span><span class="p">,</span>
+    <span class="n">INDEX_FILE_HEADER_FORMAT</span><span class="p">,</span>
+    <span class="n">INDEX_FILE_POSTFIX</span><span class="p">,</span>
+    <span class="n">BaseIndexedReader</span><span class="p">,</span>
+    <span class="n">Countable</span><span class="p">,</span>
+    <span class="n">IndexHandler</span><span class="p">,</span>
+    <span class="n">IndexHandlerReader</span><span class="p">,</span>
+    <span class="n">IndexHandlerWriter</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megstore.interface</span><span class="w"> </span><span class="kn">import</span> <span class="n">Appendable</span><span class="p">,</span> <span class="n">BaseWriter</span><span class="p">,</span> <span class="n">OpenBinaryIO</span><span class="p">,</span> <span class="n">T</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">megstore.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">full_error_message</span><span class="p">,</span> <span class="n">smart_limited_seekable_open</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">megstore.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">compat_msgpack</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">compat_msgpack</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;IndexedMsgpackReader&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;IndexedMsgpackWriter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;indexed_msgpack_open&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">MSGPACK_ARRAY32_FLAG</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xdd</span><span class="s2">&quot;</span>
+<span class="n">MSGPACK_ARRAY32_FLAG_SIZE</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">MSGPACK_ARRAY32_FLAG</span><span class="p">)</span>
+<span class="n">MSGPACK_ARRAY32_LENGTH_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;&gt;i&quot;</span>
+<span class="n">MSGPACK_ARRAY32_LENGTH_SIZE</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">MSGPACK_ARRAY32_LENGTH_FORMAT</span><span class="p">)</span>
+<span class="n">MSGPACK_ARRAY32_HEADER_SIZE</span> <span class="o">=</span> <span class="n">MSGPACK_ARRAY32_FLAG_SIZE</span> <span class="o">+</span> <span class="n">MSGPACK_ARRAY32_LENGTH_SIZE</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ensure_compat_msgpack</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">compat_msgpack</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s2">&quot;`msgpack` is required to use megstore.indexed.msgpack, &quot;</span>
+            <span class="s2">&quot;please install it with `pip install &#39;megstore[msgpack]&#39;`&quot;</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="IndexedMsgpackReader">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IndexedMsgpackReader</span><span class="p">(</span><span class="n">BaseIndexedReader</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>  <span class="c1"># pytype: disable=not-indexable</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Random reading for msgpack files</span>
+
+<span class="sd">    If fd_idx is ``None``, attempt to build an index from fp_msgpack to</span>
+<span class="sd">    support random reading</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="IndexedMsgpackReader.__init__">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">_ensure_compat_msgpack</span><span class="p">()</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_array_header</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">unpacker</span><span class="p">:</span> <span class="s2">&quot;compat_msgpack.Unpacker&quot;</span><span class="p">,</span>  <span class="c1"># pytype: disable=attribute-error</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">read_array_header</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">OutOfData</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">except</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">UnpackValueError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="c1"># Assuming the msgpack file contains msgpack arrays,</span>
+            <span class="c1"># raise this exception when reading non-array header</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;invalid msgpack array header: </span><span class="si">%r</span><span class="s2">, because of </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">full_error_message</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+            <span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_index</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">fp_data</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span>
+        <span class="n">offsets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">IndexHandler</span><span class="p">,</span> <span class="n">array</span><span class="p">],</span>
+        <span class="n">index_build_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build index from msgpack stream</span>
+
+<span class="sd">        :raises ValueError: Cannot read valid msgpack array header from msgpack stream</span>
+<span class="sd">        :returns: the latest offset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unpacker</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_get_msgpack_unpacker</span><span class="p">(</span><span class="n">fp_data</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_read_array_header</span><span class="p">(</span><span class="n">fp_data</span><span class="p">,</span> <span class="n">unpacker</span><span class="p">)</span>  <span class="c1"># pytype: disable=wrong-arg-count</span>
+
+        <span class="c1"># After reading array header, unpacker is at the start byte of the first value</span>
+        <span class="n">current_offset</span> <span class="o">=</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1"># Skip once first to ensure the next value can be read normally,</span>
+                <span class="c1"># then append</span>
+                <span class="c1"># Otherwise if ``OutOfData`` exception occurs meaning end of data</span>
+                <span class="c1"># reached</span>
+                <span class="k">if</span> <span class="n">index_build_callback</span><span class="p">:</span>
+                    <span class="n">index_build_callback</span><span class="p">(</span><span class="n">unpacker</span><span class="o">.</span><span class="n">unpack</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">unpacker</span><span class="o">.</span><span class="n">skip</span><span class="p">()</span>
+                <span class="n">offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_offset</span><span class="p">)</span>
+                <span class="n">current_offset</span> <span class="o">=</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">OutOfData</span><span class="p">:</span>
+            <span class="c1"># Record length exceeds actual length, only return index of</span>
+            <span class="c1"># actually read values, and the last tell() of unpacker</span>
+            <span class="k">return</span> <span class="n">current_offset</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>  <span class="c1"># pytype: disable=invalid-annotation</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a value by specified index</span>
+
+<span class="sd">        :param index: Target value&#39;s index</span>
+<span class="sd">        :returns: The read value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Index is the last offset</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">next_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">next_offset</span> <span class="o">-</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+        <span class="n">unpacker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_msgpack_unpacker</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="p">,</span> <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">unpack</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">OutOfData</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;out of data: </span><span class="si">%r</span><span class="s2">, index: </span><span class="si">%d</span><span class="s2">, offset: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_batch_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index_slice</span><span class="p">:</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read values with indices in the range [start_index, end_index) in one seek,</span>
+<span class="sd">        sequentially</span>
+
+<span class="sd">        :param start_index: Starting index</span>
+<span class="sd">        :param end_index: Ending index</span>
+<span class="sd">        :returns: List of read values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_index</span><span class="p">,</span> <span class="n">end_index</span><span class="p">,</span> <span class="n">step</span> <span class="o">=</span> <span class="n">index_slice</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">start_index</span> <span class="o">&gt;=</span> <span class="n">end_index</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_batch_get</span><span class="p">(</span><span class="n">index_slice</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">start_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="n">start_index</span><span class="p">]</span>
+        <span class="n">end_offset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">end_index</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">:</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="n">end_index</span><span class="p">]</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">end_offset</span> <span class="o">-</span> <span class="n">start_offset</span>
+        <span class="n">file_object</span> <span class="o">=</span> <span class="n">shadow_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="p">)</span>
+        <span class="n">file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">start_offset</span><span class="p">)</span>
+        <span class="n">unpacker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_msgpack_unpacker</span><span class="p">(</span><span class="n">file_object</span><span class="p">,</span> <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">start_index</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">end_index</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">unpack</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">OutOfData</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;out of data: </span><span class="si">%r</span><span class="s2">, index: </span><span class="si">%d</span><span class="s2">, offset: </span><span class="si">%d</span><span class="s2"> ~ </span><span class="si">%d</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">start_offset</span><span class="p">,</span> <span class="n">end_offset</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_msgpack_unpacker</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">file_object</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span> <span class="n">max_buffer_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;compat_msgpack.Unpacker&quot;</span><span class="p">:</span>  <span class="c1"># pytype: disable=attribute-error</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get an Unpacker object created with the current instance&#39;s msgpack stream</span>
+
+<span class="sd">        :param max_buffer_size: Maximum buffer size of Unpacker object (bytes),</span>
+<span class="sd">            default None, if specified, the number should be **&gt; 0**</span>
+<span class="sd">        :returns: Unpacker object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">max_buffer_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_buffer_size</span> <span class="o">=</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">DEFAULT_MAX_BUFFER_SIZE</span>
+        <span class="k">if</span> <span class="n">max_buffer_size</span> <span class="o">&gt;</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">DEFAULT_MAX_BUFFER_SIZE</span><span class="p">:</span>
+            <span class="n">max_buffer_size</span> <span class="o">=</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">DEFAULT_MAX_BUFFER_SIZE</span>
+        <span class="n">unpacker</span> <span class="o">=</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">Unpacker</span><span class="p">(</span><span class="n">file_object</span><span class="p">,</span> <span class="n">max_buffer_size</span><span class="o">=</span><span class="n">max_buffer_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unpacker</span></div>
+
+
+
+<div class="viewcode-block" id="IndexedMsgpackWriter">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IndexedMsgpackWriter</span><span class="p">(</span><span class="n">BaseWriter</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">Countable</span><span class="p">):</span>  <span class="c1"># pytype: disable=not-indexable</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used to write msgpack streams with index support&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="IndexedMsgpackWriter.__init__">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fp_msgpack</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span>
+        <span class="n">fp_index_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">append_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">close_fileobj_when_close</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param fp_msgpack: msgpack stream, needs to be seekable,</span>
+<span class="sd">            if it&#39;s an s3 address,</span>
+<span class="sd">            can use ``megstore.utils.smart_limited_seekable_open`` to open</span>
+<span class="sd">        :param fp_index: msgpack index stream</span>
+<span class="sd">        :param close_fileobj_when_close: When ``True``, will close the stream on exit;</span>
+<span class="sd">            when ``False``, will not close the stream</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_ensure_compat_msgpack</span><span class="p">()</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">fp_msgpack</span><span class="p">,</span>
+            <span class="n">append_mode</span><span class="o">=</span><span class="n">append_mode</span><span class="p">,</span>
+            <span class="n">close_fileobj_when_close</span><span class="o">=</span><span class="n">close_fileobj_when_close</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_packer</span> <span class="o">=</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">Packer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_array_header</span><span class="p">()</span>
+
+        <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;wb&quot;</span>
+        <span class="k">if</span> <span class="n">append_mode</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;ab&quot;</span>
+        <span class="n">fp_index</span> <span class="o">=</span> <span class="n">smart_limited_seekable_open</span><span class="p">(</span><span class="n">fp_index_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fp_index_path</span> <span class="o">=</span> <span class="n">fp_index_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span> <span class="o">=</span> <span class="n">IndexHandlerWriter</span><span class="p">(</span>
+            <span class="n">fp_index</span><span class="p">,</span>
+            <span class="n">typecode</span><span class="o">=</span><span class="n">INDEX_FILE_FORMAT</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="n">INDEX_FILE_HEADER_FORMAT</span><span class="p">,</span>
+            <span class="n">append_mode</span><span class="o">=</span><span class="n">append_mode</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">fp_index</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">write_header</span><span class="p">(</span><span class="n">intrusive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;__count__&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@_count</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;__count__&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IndexedMsgpackWriter.count">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span></div>
+
+
+<div class="viewcode-block" id="IndexedMsgpackWriter.tell">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.tell">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tell</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_write_array_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Write array32 header + placeholder</span>
+        <span class="n">header_bytes</span> <span class="o">=</span> <span class="n">MSGPACK_ARRAY32_FLAG</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span>
+            <span class="n">MSGPACK_ARRAY32_LENGTH_FORMAT</span><span class="p">,</span> <span class="n">count</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header_bytes</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_array_header</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">is_seekable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">get_content_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_array_header</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">first_byte</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">MSGPACK_ARRAY32_FLAG_SIZE</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">first_byte</span> <span class="o">==</span> <span class="n">MSGPACK_ARRAY32_FLAG</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">first_byte</span><span class="p">)</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span>
+                <span class="n">MSGPACK_ARRAY32_LENGTH_FORMAT</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">MSGPACK_ARRAY32_LENGTH_SIZE</span><span class="p">),</span>
+            <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">size</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="c1"># Assuming the msgpack file contains msgpack arrays,</span>
+            <span class="c1"># raise this exception when reading non-array header</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;invalid msgpack array header: </span><span class="si">%r</span><span class="s2">, because of </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">full_error_message</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="IndexedMsgpackWriter.append">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.append">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+        <span class="n">value_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_packer</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">value_bytes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="IndexedMsgpackWriter.commit">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.commit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write already added values to msgpack stream&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_array_header</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure data is written to stream and attempt to close stream&quot;&quot;&quot;</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">get_content_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_array_header</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">)</span>
+
+        <span class="c1"># re-seek to tail</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_append_mode</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">write_header</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">smart_limited_seekable_open</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fp_index_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb+&quot;</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">fp_index</span><span class="p">:</span>
+                <span class="n">IndexHandlerWriter</span><span class="p">(</span>
+                    <span class="n">fp_index</span><span class="p">,</span>
+                    <span class="n">typecode</span><span class="o">=</span><span class="n">INDEX_FILE_FORMAT</span><span class="p">,</span>
+                    <span class="n">header</span><span class="o">=</span><span class="n">INDEX_FILE_HEADER_FORMAT</span><span class="p">,</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">write_header</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_close_fileobj_when_close</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">IndexedMsgpackHandler</span><span class="p">(</span><span class="n">Appendable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">IndexedMsgpackReader</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fp_msgpack</span><span class="p">:</span> <span class="n">BinaryIO</span><span class="p">,</span>
+        <span class="n">fp_index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">append_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">close_fileobj_when_close</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param fp_msgpack: msgpack data stream, if the data in the stream is</span>
+<span class="sd">            not msgpack array, and no index stream is specified, building index</span>
+<span class="sd">            from msgpack stream will fail, if it&#39;s an s3 address, can use</span>
+<span class="sd">            megfile.s3_cached_open to open</span>
+<span class="sd">        :param fp_index: Corresponding index data stream, default is None</span>
+<span class="sd">        :param close_fileobj_when_close: When ``True``, close the stream on exit,</span>
+<span class="sd">            default is ``False``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_ensure_compat_msgpack</span><span class="p">()</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">fp_msgpack</span><span class="p">,</span>
+            <span class="n">fp_index_path</span><span class="p">,</span>
+            <span class="n">close_fileobj_when_close</span><span class="o">=</span><span class="n">close_fileobj_when_close</span><span class="p">,</span>
+            <span class="n">index_file_mode</span><span class="o">=</span><span class="s2">&quot;rb+&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_append_mode</span> <span class="o">=</span> <span class="n">append_mode</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># offsets read from index</span>
+            <span class="n">last_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">last_offset</span><span class="p">)</span>
+            <span class="n">unpacker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_msgpack_unpacker</span><span class="p">(</span><span class="n">fp_msgpack</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">unpacker</span><span class="o">.</span><span class="n">skip</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span> <span class="o">=</span> <span class="n">last_offset</span> <span class="o">+</span> <span class="n">unpacker</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">OutOfData</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="c1"># Index or msgpack is empty file stream</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span> <span class="o">=</span> <span class="n">MSGPACK_ARRAY32_HEADER_SIZE</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_array_header</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">tell</span><span class="p">():</span>
+            <span class="c1"># Ensure no extra data at the end of msgpack, appending is safe</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;offset mismatch: </span><span class="si">%r</span><span class="s2">, expected: </span><span class="si">%d</span><span class="s2">, got: </span><span class="si">%d</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">tell</span><span class="p">())</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">):</span>
+            <span class="c1"># Ensure msgpack header and index have consistent length</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;msgpack length mismatch: </span><span class="si">%r</span><span class="s2">, header: </span><span class="si">%d</span><span class="s2">, index: </span><span class="si">%d</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_packer</span> <span class="o">=</span> <span class="n">compat_msgpack</span><span class="o">.</span><span class="n">Packer</span><span class="p">(</span><span class="n">use_bin_type</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strict_types</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_append_mode</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;a+&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;w+&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_write_array_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Write array32 header + placeholder</span>
+        <span class="n">header_bytes</span> <span class="o">=</span> <span class="n">MSGPACK_ARRAY32_FLAG</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span>
+            <span class="n">MSGPACK_ARRAY32_LENGTH_FORMAT</span><span class="p">,</span> <span class="n">count</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header_bytes</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T</span><span class="p">):</span>  <span class="c1"># pytype: disable=invalid-annotation</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a record</span>
+
+<span class="sd">        :param value: Record to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">tell</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+        <span class="n">value_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_packer</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">value_bytes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write already added values to msgpack stream&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_array_header</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span><span class="p">)</span>
+
+        <span class="c1"># re-seek to tail</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_object</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">,</span> <span class="n">IndexHandlerReader</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure data is written to stream and attempt to close stream&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_close</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="indexed_msgpack_open">
+<a class="viewcode-back" href="../../../megstore.indexed.msgpack.html#megstore.indexed.msgpack.indexed_msgpack_open">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">indexed_msgpack_open</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">open_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OpenBinaryIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">IndexedMsgpackReader</span><span class="p">,</span> <span class="n">IndexedMsgpackWriter</span><span class="p">,</span> <span class="n">IndexedMsgpackHandler</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open an indexed msgpack file</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Currently ``indexed_msgpack_open`` does not support opening an ``s3_url`` in</span>
+<span class="sd">        ``a`` mode, users need to manually pass an open_func that supports ``rb+`` mode,</span>
+<span class="sd">        such as ``megfile.s3_cached_open`` / ``megfile.s3_memory_open`` provided by</span>
+<span class="sd">        ``megfile``.</span>
+
+<span class="sd">    :param path: msgpack file path</span>
+<span class="sd">    :param mode: Opening mode, supports read ``r``, write ``w``, append ``a``</span>
+<span class="sd">        and read-write ``w+`` / ``a+``, default ``r``</span>
+<span class="sd">    :param index_path: Index file path, default is ``None``</span>
+<span class="sd">    :param open_func: Open function for msgpack file stream</span>
+<span class="sd">        Default uses ``smart_open`` with ``limited_seekable=True``</span>
+<span class="sd">    :raises ValueError: Invalid mode</span>
+<span class="sd">    :returns: Returns ``megstore.IndexedMsgpackReader`` when mode is ``r``,</span>
+<span class="sd">        returns ``megstore.IndexedMsgpackWriter`` when mode is ``w``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_ensure_compat_msgpack</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="s2">&quot;a+&quot;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unacceptable mode: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">open_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">open_func</span> <span class="o">=</span> <span class="n">smart_limited_seekable_open</span>
+
+    <span class="n">fp_mode</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">+</span> <span class="s2">&quot;b&quot;</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;a+&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">smart_exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">fp_mode</span> <span class="o">=</span> <span class="s2">&quot;rb+&quot;</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;a&quot;</span><span class="p">:</span>
+        <span class="n">fp_mode</span> <span class="o">=</span> <span class="s2">&quot;wb&quot;</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">,</span> <span class="s2">&quot;a+&quot;</span><span class="p">):</span>
+        <span class="n">fp_mode</span> <span class="o">=</span> <span class="s2">&quot;wb+&quot;</span>
+
+    <span class="n">fp_msgpack_file</span> <span class="o">=</span> <span class="n">open_func</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fp_mode</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">index_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">index_path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="n">INDEX_FILE_POSTFIX</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;r&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">IndexedMsgpackReader</span><span class="p">(</span>
+            <span class="n">fp_msgpack_file</span><span class="p">,</span> <span class="n">index_path</span><span class="p">,</span> <span class="n">close_fileobj_when_close</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+    <span class="n">append_mode</span> <span class="o">=</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;a+&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">IndexedMsgpackWriter</span><span class="p">(</span>
+            <span class="n">fp_msgpack_file</span><span class="p">,</span>
+            <span class="n">index_path</span><span class="p">,</span>
+            <span class="n">append_mode</span><span class="o">=</span><span class="n">append_mode</span><span class="p">,</span>
+            <span class="n">close_fileobj_when_close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">IndexedMsgpackHandler</span><span class="p">(</span>
+        <span class="n">fp_msgpack_file</span><span class="p">,</span>
+        <span class="n">index_path</span><span class="p">,</span>
+        <span class="n">append_mode</span><span class="o">=</span><span class="n">append_mode</span><span class="p">,</span>
+        <span class="n">close_fileobj_when_close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

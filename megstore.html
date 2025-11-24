@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; megstore  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="megstore.indexed.jsonline module" href="megstore.indexed.jsonline.html" />
+    <link rel="prev" title="Getting Started" href="readme.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            megstore
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#indexed-storage-modules">Indexed Storage Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html">megstore.indexed.jsonline module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html">megstore.indexed.msgpack module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html">megstore.indexed.txt module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">0.0.1 - 2025.11.25</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megstore">Github</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">megstore</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/megstore.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<section id="indexed-storage-modules">
+<h2>Indexed Storage Modules<a class="headerlink" href="#indexed-storage-modules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="megstore.indexed.jsonline.html">megstore.indexed.jsonline module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.__init__"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.abort"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.abort()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.atomic"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.atomic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.batch_get"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.batch_get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.build_index"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.build_index()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.close"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.closed"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.closed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.count"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.get"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.mode"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineReader.name"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineReader.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.__init__"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.abort"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.abort()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.append"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.append()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.atomic"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.atomic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.close"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.closed"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.closed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.commit"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.commit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.extend"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.extend()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.mode"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.IndexedJsonlineWriter.name"><code class="docutils literal notranslate"><span class="pre">IndexedJsonlineWriter.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.jsonline.html#megstore.indexed.jsonline.indexed_jsonline_open"><code class="docutils literal notranslate"><span class="pre">indexed_jsonline_open()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megstore.indexed.msgpack.html">megstore.indexed.msgpack module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.__init__"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.abort"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.abort()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.atomic"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.atomic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.batch_get"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.batch_get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.build_index"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.build_index()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.close"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.closed"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.closed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.count"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.get"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.mode"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackReader.name"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackReader.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.__init__"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.abort"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.abort()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.append"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.append()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.atomic"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.atomic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.close"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.closed"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.closed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.commit"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.commit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.count"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.extend"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.extend()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.mode"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.name"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.IndexedMsgpackWriter.tell"><code class="docutils literal notranslate"><span class="pre">IndexedMsgpackWriter.tell()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.msgpack.html#megstore.indexed.msgpack.indexed_msgpack_open"><code class="docutils literal notranslate"><span class="pre">indexed_msgpack_open()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="megstore.indexed.txt.html">megstore.indexed.txt module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.__init__"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.abort"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.abort()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.atomic"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.atomic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.batch_get"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.batch_get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.build_index"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.build_index()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.close"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.closed"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.closed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.count"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.get"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.mode"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtReader.name"><code class="docutils literal notranslate"><span class="pre">IndexedTxtReader.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.__init__"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.abort"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.abort()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.append"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.append()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.atomic"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.atomic</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.close"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.closed"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.closed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.commit"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.commit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.extend"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.extend()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.mode"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.mode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.IndexedTxtWriter.name"><code class="docutils literal notranslate"><span class="pre">IndexedTxtWriter.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="megstore.indexed.txt.html#megstore.indexed.txt.indexed_txt_open"><code class="docutils literal notranslate"><span class="pre">indexed_txt_open()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="readme.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="megstore.indexed.jsonline.html" class="btn btn-neutral float-right" title="megstore.indexed.jsonline module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, r-eng.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
