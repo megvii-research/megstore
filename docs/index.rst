@@ -12,6 +12,7 @@ Welcome to megstore's documentation!
 
    readme
    megstore
+   indexed
    changelog
    Github <https://github.com/megvii-research/megstore>
 
