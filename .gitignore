@@ -21,3 +21,4 @@ bandit-sarif.json
 venv
 .venv
 .tests
+.python-version
