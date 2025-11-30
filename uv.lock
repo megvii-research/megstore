@@ -964,21 +964,16 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-msgpack = [
-    { name = "msgpack" },
-    { name = "msgpack-numpy" },
-]
-
-[package.dev-dependencies]
 dev = [
     { name = "bandit" },
     { name = "bandit-sarif-formatter" },
     { name = "black" },
     { name = "cryptography" },
     { name = "m2r2" },
-    { name = "megstore", extra = ["msgpack"] },
     { name = "mock" },
     { name = "moto", extra = ["s3"] },
+    { name = "msgpack" },
+    { name = "msgpack-numpy" },
     { name = "msgspec", marker = "python_full_version >= '3.13'" },
     { name = "mutmut" },
     { name = "pyfakefs" },
@@ -1006,6 +1001,10 @@ doc = [
 lint = [
     { name = "black" },
     { name = "ruff" },
+]
+msgpack = [
+    { name = "msgpack" },
+    { name = "msgpack-numpy" },
 ]
 test = [
     { name = "cryptography" },
@@ -1030,73 +1029,37 @@ typecheck = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bandit", marker = "extra == 'typecheck'" },
+    { name = "bandit-sarif-formatter", marker = "extra == 'typecheck'" },
+    { name = "black", marker = "extra == 'lint'" },
+    { name = "cryptography", marker = "extra == 'test'", specifier = ">=3.3.2" },
+    { name = "m2r2", marker = "extra == 'doc'" },
     { name = "megfile" },
+    { name = "megstore", extras = ["msgpack", "doc", "test", "lint", "typecheck"], marker = "extra == 'dev'" },
+    { name = "mock", marker = "extra == 'test'" },
+    { name = "moto", extras = ["s3"], marker = "extra == 'test'", specifier = ">=5.0.0" },
     { name = "msgpack", marker = "extra == 'msgpack'", specifier = ">=0.6.0" },
     { name = "msgpack-numpy", marker = "extra == 'msgpack'", specifier = ">=0.4.6" },
+    { name = "msgspec", marker = "python_full_version >= '3.13' and extra == 'typecheck'", specifier = ">=0.19.0" },
+    { name = "mutmut", marker = "extra == 'test'" },
     { name = "orjson" },
+    { name = "pyfakefs", marker = "extra == 'test'", specifier = ">=4.5" },
+    { name = "pyre-check", marker = "extra == 'typecheck'", specifier = "~=0.9.22" },
+    { name = "pytest", marker = "extra == 'test'" },
+    { name = "pytest-cov", marker = "extra == 'test'" },
+    { name = "pytest-mock", marker = "extra == 'test'", specifier = ">3.6.0" },
+    { name = "pytest-retry", marker = "extra == 'test'" },
+    { name = "pytest-socket", marker = "extra == 'test'" },
+    { name = "pytype", marker = "extra == 'typecheck'" },
+    { name = "requests-mock", marker = "extra == 'test'" },
+    { name = "ruff", marker = "extra == 'lint'" },
+    { name = "sphinx", marker = "python_full_version >= '3.10' and extra == 'doc'", specifier = ">=7.3.7" },
+    { name = "sphinx", marker = "python_full_version < '3.10' and extra == 'doc'" },
+    { name = "sphinx-click", marker = "extra == 'doc'" },
+    { name = "sphinx-rtd-theme", marker = "extra == 'doc'", specifier = "~=2.0" },
+    { name = "sphinxcontrib-jquery", marker = "extra == 'doc'" },
 ]
-provides-extras = ["msgpack"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "bandit" },
-    { name = "bandit-sarif-formatter" },
-    { name = "black" },
-    { name = "cryptography", specifier = ">=3.3.2" },
-    { name = "m2r2" },
-    { name = "megstore", extras = ["msgpack"] },
-    { name = "mock" },
-    { name = "moto", extras = ["s3"], specifier = ">=5.0.0" },
-    { name = "msgspec", marker = "python_full_version >= '3.13'", specifier = ">=0.19.0" },
-    { name = "mutmut" },
-    { name = "pyfakefs", specifier = ">=4.5" },
-    { name = "pyre-check", specifier = "~=0.9.22" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-mock", specifier = ">3.6.0" },
-    { name = "pytest-retry" },
-    { name = "pytest-socket" },
-    { name = "pytype" },
-    { name = "requests-mock" },
-    { name = "ruff" },
-    { name = "sphinx", marker = "python_full_version < '3.10'" },
-    { name = "sphinx", marker = "python_full_version >= '3.10'", specifier = ">=7.3.7" },
-    { name = "sphinx-click" },
-    { name = "sphinx-rtd-theme", specifier = "~=2.0" },
-    { name = "sphinxcontrib-jquery" },
-]
-doc = [
-    { name = "m2r2" },
-    { name = "sphinx", marker = "python_full_version < '3.10'" },
-    { name = "sphinx", marker = "python_full_version >= '3.10'", specifier = ">=7.3.7" },
-    { name = "sphinx-click" },
-    { name = "sphinx-rtd-theme", specifier = "~=2.0" },
-    { name = "sphinxcontrib-jquery" },
-]
-lint = [
-    { name = "black" },
-    { name = "ruff" },
-]
-test = [
-    { name = "cryptography", specifier = ">=3.3.2" },
-    { name = "mock" },
-    { name = "moto", extras = ["s3"], specifier = ">=5.0.0" },
-    { name = "mutmut" },
-    { name = "pyfakefs", specifier = ">=4.5" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-mock", specifier = ">3.6.0" },
-    { name = "pytest-retry" },
-    { name = "pytest-socket" },
-    { name = "requests-mock" },
-]
-typecheck = [
-    { name = "bandit" },
-    { name = "bandit-sarif-formatter" },
-    { name = "msgspec", marker = "python_full_version >= '3.13'", specifier = ">=0.19.0" },
-    { name = "pyre-check", specifier = "~=0.9.22" },
-    { name = "pytype" },
-]
+provides-extras = ["msgpack", "doc", "test", "lint", "typecheck", "dev"]
 
 [[package]]
 name = "mistune"
