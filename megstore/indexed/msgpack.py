@@ -13,7 +13,6 @@ from megstore.indexed.base import (
     INDEX_FILE_POSTFIX,
     BaseIndexedReader,
     Countable,
-    IndexHandler,
     IndexHandlerReader,
     IndexHandlerWriter,
 )
@@ -81,7 +80,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
     def _build_index(
         cls,
         fp_data: BinaryIO,
-        offsets: Union[IndexHandler, array],
+        offsets: Union[IndexHandlerReader, array],
         index_build_callback: Optional[Callable[[Any], None]] = None,
     ) -> int:
         """Build index from msgpack stream
@@ -109,7 +108,8 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
         except compat_msgpack.OutOfData:
             # Record length exceeds actual length, only return index of
             # actually read values, and the last tell() of unpacker
-            return current_offset
+            pass
+        return current_offset
 
     def _get(self, index: int) -> T:  # pytype: disable=invalid-annotation
         """Read a value by specified index
@@ -321,7 +321,7 @@ class IndexedMsgpackWriter(BaseWriter[T], Countable):  # pytype: disable=not-ind
             self._file_object.close()
 
 
-class IndexedMsgpackHandler(Appendable[T], IndexedMsgpackReader):
+class IndexedMsgpackHandler(IndexedMsgpackReader, Appendable[T]):
     def __init__(
         self,
         fp_msgpack: BinaryIO,
