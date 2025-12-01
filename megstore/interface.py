@@ -8,7 +8,6 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
-    List,
     TextIO,
     Tuple,
     TypeVar,
