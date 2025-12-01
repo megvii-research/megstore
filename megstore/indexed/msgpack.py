@@ -89,7 +89,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
         :returns: the latest offset
         """
         unpacker = cls._get_msgpack_unpacker(file_object)
-        cls._read_array_header(file_object, unpacker)  # pytype: disable=wrong-arg-count
+        cls._read_array_header(file_object, unpacker)  # type: ignore
 
         # After reading array header, unpacker is at the start byte of the first value
         current_offset = unpacker.tell()
