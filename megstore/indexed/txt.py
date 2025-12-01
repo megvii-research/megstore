@@ -50,7 +50,7 @@ class IndexedTxtReader(BaseIndexedReader[str]):  # pytype: disable=not-indexable
 
     @classmethod
     def _build_index(
-        self,
+        cls,
         file_object: BinaryIO,
         offsets: Union[IndexHandler, array],
         index_build_callback: Optional[Callable[[Any], None]] = None,
