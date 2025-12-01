@@ -26,7 +26,6 @@ from megstore.interface import (
     SliceAccessible,
     T,
     smart_limited_seekable_open,
-    validate_index,
 )
 
 INDEX_FILE_FORMAT = "Q"
@@ -46,6 +45,21 @@ INDEX_FILE_HEADER_PREFIX = "IDV1"
 # 4. Index file records file pointer position for each data entry,
 #    after index file validation passes, can quickly read corresponding
 #    data through recorded file pointer positions
+
+
+def validate_index(handler, index: int) -> int:
+    length = len(handler)
+    if index >= length or index + length < 0:
+        if hasattr(handler, "name"):
+            name = handler.name
+        else:
+            name = repr(handler)
+        raise IndexError(
+            "index out of range: %r, index: %d, length: %d" % (name, index, length)
+        )
+    if index < 0:
+        index += length
+    return index
 
 
 class BaseIndexedReader(BaseReader[T], ABC):

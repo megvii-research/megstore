@@ -57,37 +57,6 @@ class Countable(ABC):
         return self.count()
 
 
-class Readable(Generic[VT], ABC):
-    @property
-    def _offset(self) -> int:
-        return getattr(self, "__offset__", 0)
-
-    @_offset.setter
-    def _offset(self, value: int):
-        setattr(self, "__offset__", value)
-
-    def tell(self) -> int:
-        return self._offset
-
-    @abstractmethod
-    def _read(self) -> VT:
-        """:raises: EOFError when nothing left"""
-
-    def read(self) -> VT:
-        data = self._read()
-        self._offset += 1
-        return data
-
-    def __next__(self) -> VT:
-        try:
-            return self.read()
-        except EOFError:
-            raise StopIteration
-
-    def __iter__(self) -> Iterator[VT]:
-        return self
-
-
 def make_slice(index: range) -> slice:
     stop = None if index.stop == -1 else index.stop
     return slice(index.start, stop, index.step)
@@ -246,18 +215,3 @@ class BaseWriter(Appendable[T], Handler):
 
 
 smart_limited_seekable_open = partial(smart_open, limited_seekable=True)
-
-
-def validate_index(handler, index: int) -> int:
-    length = len(handler)
-    if index >= length or index + length < 0:
-        if hasattr(handler, "name"):
-            name = handler.name
-        else:
-            name = repr(handler)
-        raise IndexError(
-            "index out of range: %r, index: %d, length: %d" % (name, index, length)
-        )
-    if index < 0:
-        index += length
-    return index
