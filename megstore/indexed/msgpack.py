@@ -62,7 +62,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
 
     def _read_array_header(
         self,
-        unpacker: "compat_msgpack.Unpacker",  # pytype: disable=attribute-error
+        unpacker: "compat_msgpack.Unpacker",  # type: ignore
     ) -> int:
         try:
             return unpacker.read_array_header()
@@ -79,7 +79,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
     @classmethod
     def _build_index(
         cls,
-        fp_data: BinaryIO,
+        file_object: BinaryIO,
         offsets: Union[IndexHandlerReader, array],
         index_build_callback: Optional[Callable[[Any], None]] = None,
     ) -> int:
@@ -88,8 +88,8 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
         :raises ValueError: Cannot read valid msgpack array header from msgpack stream
         :returns: the latest offset
         """
-        unpacker = cls._get_msgpack_unpacker(fp_data)
-        cls._read_array_header(fp_data, unpacker)  # pytype: disable=wrong-arg-count
+        unpacker = cls._get_msgpack_unpacker(file_object)
+        cls._read_array_header(file_object, unpacker)  # pytype: disable=wrong-arg-count
 
         # After reading array header, unpacker is at the start byte of the first value
         current_offset = unpacker.tell()
@@ -171,7 +171,7 @@ class IndexedMsgpackReader(BaseIndexedReader[T]):  # pytype: disable=not-indexab
     @classmethod
     def _get_msgpack_unpacker(
         cls, file_object: BinaryIO, max_buffer_size: Optional[int] = None
-    ) -> "compat_msgpack.Unpacker":  # pytype: disable=attribute-error
+    ) -> "compat_msgpack.Unpacker":  # type: ignore
         """Get an Unpacker object created with the current instance's msgpack stream
 
         :param max_buffer_size: Maximum buffer size of Unpacker object (bytes),
