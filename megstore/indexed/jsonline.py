@@ -10,7 +10,7 @@ from megstore.indexed.base import (
     INDEX_FILE_POSTFIX,
     BaseIndexedReader,
     BaseIndexedWriter,
-    IndexHandler,
+    IndexHandlerReader,
     OpenBinaryIO,
 )
 from megstore.interface import T
@@ -60,7 +60,7 @@ class IndexedJsonlineReader(BaseIndexedReader[T]):
     def _build_index(
         cls,
         file_object: BinaryIO,
-        offsets: Union[IndexHandler, array],
+        offsets: Union[IndexHandlerReader, array],
         index_build_callback: Optional[Callable[[Any], None]] = None,
     ) -> int:
         """Build index from jsonline file object
