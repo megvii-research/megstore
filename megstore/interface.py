@@ -89,7 +89,7 @@ class IterableValue(Iterable[VT]):
 
 class SliceAccessible(Generic[VT], Countable, ABC):
     @abstractmethod
-    def get(self, key: int) -> VT:
+    def get(self, index: int) -> VT:
         pass
 
     def _batch_get(self, index_slice: slice) -> Iterator[VT]:

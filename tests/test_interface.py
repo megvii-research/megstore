@@ -157,8 +157,8 @@ class TestSliceAccessible:
             def __init__(self, data):
                 self._data = data
 
-            def get(self, key):
-                return self._data[key]
+            def get(self, index):
+                return self._data[index]
 
             def count(self):
                 return len(self._data)
@@ -175,8 +175,8 @@ class TestSliceAccessible:
             def __init__(self, data):
                 self._data = data
 
-            def get(self, key):
-                return self._data[key]
+            def get(self, index):
+                return self._data[index]
 
             def count(self):
                 return len(self._data)
@@ -193,8 +193,8 @@ class TestSliceAccessible:
             def __init__(self, data):
                 self._data = data
 
-            def get(self, key):
-                return self._data[key]
+            def get(self, index):
+                return self._data[index]
 
             def count(self):
                 return len(self._data)
@@ -210,8 +210,8 @@ class TestSliceAccessible:
             def __init__(self, data):
                 self._data = data
 
-            def get(self, key):
-                return self._data[key]
+            def get(self, index):
+                return self._data[index]
 
             def count(self):
                 return len(self._data)
@@ -246,8 +246,8 @@ class TestBaseReader:
         """Test BaseReader mode property"""
 
         class ConcreteReader(BaseReader):
-            def get(self, key):
-                return key
+            def get(self, index):
+                return index
 
             def count(self):
                 return 0
@@ -261,8 +261,8 @@ class TestBaseReader:
         """Test BaseReader name property when file has name"""
 
         class ConcreteReader(BaseReader):
-            def get(self, key):
-                return key
+            def get(self, index):
+                return index
 
             def count(self):
                 return 0
@@ -276,8 +276,8 @@ class TestBaseReader:
         """Test BaseReader name property when file has no name"""
 
         class ConcreteReader(BaseReader):
-            def get(self, key):
-                return key
+            def get(self, index):
+                return index
 
             def count(self):
                 return 0
