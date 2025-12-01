@@ -11,6 +11,7 @@ from megfile.utils import get_content_size
 from moto import mock_aws as mock_s3
 from pyfakefs.fake_filesystem_unittest import Patcher
 
+from megstore.errors import InvalidJsonError
 from megstore.indexed.base import (
     INDEX_FILE_FORMAT,
     INDEX_FILE_HEADER_FORMAT,
@@ -20,6 +21,7 @@ from megstore.indexed.jsonline import (
     IndexedJsonlineReader,
     IndexedJsonlineWriter,
     indexed_jsonline_open,
+    short_bytes,
 )
 
 INDEX_FILE_RECROD_SIZE = struct.calcsize(INDEX_FILE_FORMAT)
@@ -512,3 +514,86 @@ def test_indexed_jsonline_open(fs):
     with pytest.raises(ValueError) as error:
         handler = indexed_jsonline_open("bad-mode.msg", mode="unknow mode")
     assert "unacceptable mode: 'unknow mode'" == str(error.value)
+
+
+def test_short_bytes_under_limit():
+    """Test short_bytes with data under the limit"""
+    data = b"short data"
+    result = short_bytes(data)
+    assert result == repr(data)
+
+
+def test_short_bytes_over_limit():
+    """Test short_bytes with data over the limit"""
+    data = b"x" * 200
+    result = short_bytes(data, length=128)
+    assert "..." in result
+    assert "200 bytes in total" in result
+
+
+def test_short_bytes_custom_length():
+    """Test short_bytes with custom length"""
+    data = b"x" * 50
+    result = short_bytes(data, length=10)
+    assert "..." in result
+    assert "50 bytes in total" in result
+
+
+def test_short_bytes_exact_limit():
+    """Test short_bytes with data exactly at the limit"""
+    data = b"x" * 128
+    result = short_bytes(data, length=128)
+    assert result == repr(data)
+
+
+def test_invalid_json_error_message(jsonline_stream):
+    """Test that InvalidJsonError contains proper error message"""
+    # Create a stream with invalid JSON
+    invalid_stream = BytesIO(b"invalid json\n")
+    with IndexedJsonlineReader(invalid_stream) as reader:
+        with pytest.raises(InvalidJsonError) as error:
+            reader[0]
+        assert "failed to decode json" in str(error.value)
+        assert "invalid json" in str(error.value)
+
+
+def test_invalid_json_error_with_long_line():
+    """Test InvalidJsonError with a very long invalid line"""
+    # Create a stream with a very long invalid line
+    long_line = b"x" * 200 + b"\n"
+    invalid_stream = BytesIO(long_line)
+    with IndexedJsonlineReader(invalid_stream) as reader:
+        with pytest.raises(InvalidJsonError) as error:
+            reader[0]
+        assert "failed to decode json" in str(error.value)
+        # The error message should contain truncated line info
+        assert "bytes in total" in str(error.value)
+
+
+def test_indexed_jsonline_reader_batch_get_with_eof():
+    """Test batch get when EOF is encountered unexpectedly"""
+    # Create a stream with valid JSON but corrupt offset
+    jsonline_stream = BytesIO(b"1\n2\n")
+    with IndexedJsonlineReader(jsonline_stream) as reader:
+        # Manually corrupt the offset
+        reader._offsets[1] = 100  # Invalid offset
+        with pytest.raises(ValueError) as error:
+            reader[1]
+        assert "out of data" in str(error.value)
+
+
+def test_indexed_jsonline_reader_with_index_build_callback():
+    """Test index build callback is called correctly"""
+    jsonline_stream = BytesIO(b'1\n"test"\n[1,2,3]\n')
+    callback_results = []
+
+    def callback(line):
+        callback_results.append(line)
+
+    with IndexedJsonlineReader(jsonline_stream, index_build_callback=callback):
+        pass
+
+    assert len(callback_results) == 3
+    assert callback_results[0] == b"1\n"
+    assert callback_results[1] == b'"test"\n'
+    assert callback_results[2] == b"[1,2,3]\n"
