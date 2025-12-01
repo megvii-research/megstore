@@ -8,7 +8,6 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
-    List,
     TextIO,
     Tuple,
     TypeVar,
@@ -90,7 +89,7 @@ class IterableValue(Iterable[VT]):
 
 class SliceAccessible(Generic[VT], Countable, ABC):
     @abstractmethod
-    def get(self, key: int) -> VT:
+    def get(self, index: int) -> VT:
         pass
 
     def _batch_get(self, index_slice: slice) -> Iterator[VT]:
@@ -104,7 +103,7 @@ class SliceAccessible(Generic[VT], Countable, ABC):
             batch_get_func=self._batch_get,
         )
 
-    def __getitem__(self, index: Union[int, slice]) -> Union[VT, List[VT]]:
+    def __getitem__(self, index: Union[int, slice]) -> Union[VT, IterableValue[VT]]:
         if isinstance(index, slice):
             return self.batch_get(index)
         return self.get(index)

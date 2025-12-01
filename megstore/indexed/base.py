@@ -287,7 +287,7 @@ class BaseIndexHandler(Appendable[VT], SliceAccessible[VT], Countable, Handler):
     def name(self) -> str:
         if hasattr(self._file_object, "name"):
             return self._file_object.name
-        return self._file_object
+        return type(self._file_object).__name__
 
     def _close(self):
         if self._close_fileobj_when_close:

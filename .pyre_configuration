@@ -11,6 +11,9 @@
       "site-package": "msgpack"
     },
     {
+      "site-package": "msgpack_numpy.py"
+    },
+    {
       "site-package": "numpy"
     }
   ],

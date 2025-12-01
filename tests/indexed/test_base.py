@@ -158,7 +158,7 @@ class TestIndexHandler:
         """Test IndexHandler name property"""
         file_obj = BytesIO()
         handler = IndexHandler(file_obj, typecode=INDEX_FILE_FORMAT)
-        assert handler.name == file_obj
+        assert handler.name == "BytesIO"
         handler.close()
 
     def test_index_handler_mode(self):
