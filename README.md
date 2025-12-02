@@ -7,7 +7,6 @@ megstore - Common Formats. Uncommon Speed.
 [![Latest version](https://img.shields.io/pypi/v/megstore.svg)](https://pypi.org/project/megstore/)
 [![Support python versions](https://img.shields.io/pypi/pyversions/megstore.svg)](https://pypi.org/project/megstore/)
 [![License](https://img.shields.io/pypi/l/megstore.svg)](https://github.com/megvii-research/megstore/blob/main/LICENSE)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5233/badge)](https://bestpractices.coreinfrastructure.org/projects/5233)
 
 * Docs: http://megvii-research.github.io/megstore
 
