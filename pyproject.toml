@@ -1,15 +1,12 @@
-[build-system]
-requires = ["setuptools>=64", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "megstore"
-dynamic = ["version", "dependencies", "optional-dependencies", "readme"]
+dynamic = ["version"]
 description = "Common Formats. Uncommon Speed."
+readme = "README.md"
 authors = [
     { name = "megvii-reng", email = "megvii-reng@googlegroups.com" }
 ]
-urls = { Homepage = "https://github.com/megvii-research/megstore" }
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -25,20 +22,66 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.10"
+dependencies = [
+    "megfile",
+    "orjson",
+]
 
-[tool.setuptools.packages.find]
-include = ["megstore*"]
+# Better dependencies layout for uv:
+# - Put user dependencies into project.optional-dependencies;
+# - Put dev dependencies into dependency-group.
+# However, since pytype doesn't work well with dependency-group,
+# we still stick to project.optional-dependencies for now.
+[project.optional-dependencies]
+msgpack = [
+    "msgpack>=0.6.0",
+    "msgpack-numpy>=0.4.6",
+]
+doc = [
+    "Sphinx>=7.3.7; python_version >= '3.10'",
+    "Sphinx; python_version < '3.10'",
+    "m2r2",
+    "sphinx-rtd-theme~=2.0",
+    "sphinxcontrib-jquery",
+    "sphinx-click",
+]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock>3.6.0",
+    "pytest-socket",
+    "pytest-retry",
+    "moto[s3]>=5.0.0",
+    "cryptography>=3.3.2",
+    "mutmut",
+    "pyfakefs>=4.5",
+    "mock",
+    "requests-mock",
+]
+lint = [
+    "ruff",
+    "black",
+]
+typecheck = [
+    "msgspec>=0.19.0; python_version >= '3.13'",
+    "pytype",
+    "pyre-check~=0.9.22",
+    "bandit",
+    "bandit-sarif-formatter",
+]
+dev = [
+    "megstore[msgpack,doc,test,lint,typecheck]",
+]
 
-[tool.setuptools.dynamic]
-version = {attr = "megstore.version.VERSION"}
-readme = {file = ["README.md"], content-type = "text/markdown"}
+[project.urls]
+Homepage = "https://github.com/megvii-research/megstore"
 
-[tool.setuptools.dynamic.dependencies]
-file = ["requirements.txt"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools.dynamic.optional-dependencies]
-msgpack = { file = ["requirements-msgpack.txt"] }
+[tool.hatch.version]
+path = "megstore/version.py"
 
 [tool.ruff]
 line-length = 88
@@ -62,7 +105,6 @@ extend-select = ["I"]
 quote-style = "double"
 
 [tool.pytype]
-
 # Space-separated list of files or directories to exclude.
 exclude = [
     "tests/"

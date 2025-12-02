@@ -1,2 +1,0 @@
-msgpack >= 0.6.0
-msgpack_numpy >= 0.4.6
