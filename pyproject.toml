@@ -60,7 +60,6 @@ test = [
 ]
 lint = [
     "ruff",
-    "black",
 ]
 typecheck = [
     "msgspec>=0.19.0; python_version >= '3.13'",
@@ -77,11 +76,14 @@ dev = [
 Homepage = "https://github.com/megvii-research/megstore"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
-[tool.hatch.version]
-path = "megstore/version.py"
+[tool.pdm]
+version = { source = "file", path = "megstore/__version__.py" }
+
+[tool.pdm.build]
+includes = ["megstore"]
 
 [tool.ruff]
 line-length = 88

@@ -19,16 +19,19 @@ jobs:
       - name: Checkout Github Repository
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-
       - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install PDM
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pdm
+          pdm venv create
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: pdm sync -G dev --venv
 
       - name: Run unit-test
         run: make test
@@ -54,16 +57,19 @@ jobs:
       - name: Checkout Github Repository
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-
       - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install PDM
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pdm
+          pdm venv create
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: pdm sync -G dev --venv
 
       - name: Run style-check
         run: make style_check
@@ -80,16 +86,19 @@ jobs:
       - name: Checkout Github Repository
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-
       - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install PDM
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pdm
+          pdm venv create
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: pdm sync -G dev --venv
 
       - name: Run static-check
         run: make static_check
@@ -106,16 +115,19 @@ jobs:
       - name: Checkout Github Repository
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-
       - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install PDM
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pdm
+          pdm venv create
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: pdm sync -G dev --venv
 
       - name: Run bandit-check
         continue-on-error: true
@@ -144,16 +156,19 @@ jobs:
       - name: Checkout Github Repository
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-
       - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install PDM
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pdm
+          pdm venv create
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: pdm sync -G dev --venv
 
       - name: Run pyre-check
         continue-on-error: true
