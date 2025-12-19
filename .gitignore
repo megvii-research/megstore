@@ -22,3 +22,5 @@ venv
 .venv
 .tests
 .python-version
+.devcontainer
+.pdm-python

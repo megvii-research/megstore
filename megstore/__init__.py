@@ -1,3 +1,4 @@
+from megstore.__version__ import __version__  # noqa: F401
 from megstore.indexed import (
     IndexedJsonlineReader,
     IndexedJsonlineWriter,
@@ -9,7 +10,6 @@ from megstore.indexed import (
     indexed_msgpack_open,
     indexed_txt_open,
 )
-from megstore.version import VERSION as __version__  # noqa: F401
 
 __all__ = [
     "IndexedJsonlineReader",
