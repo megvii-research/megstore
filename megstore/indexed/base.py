@@ -282,6 +282,11 @@ class BaseIndexHandler(Appendable[VT], SliceAccessible[VT], Countable, Handler):
     ):
         self._file_object = file_object
         self._close_fileobj_when_close = close_fileobj_when_close
+        self._page_size = self.DEFAULT_PAGE_SIZE
+        self._typecode = INDEX_FILE_FORMAT
+        self._struct = Struct(INDEX_FILE_FORMAT)
+        self._header: Any = None
+        self._content_size = 0
 
     @property
     def name(self) -> str:

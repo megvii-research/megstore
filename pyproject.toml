@@ -27,15 +27,13 @@ dependencies = [
     "orjson",
 ]
 
-# Better dependencies layout for uv:
-# - Put user dependencies into project.optional-dependencies;
-# - Put dev dependencies into dependency-group.
-# However, since pytype doesn't work well with dependency-group,
-# we still stick to project.optional-dependencies for now.
 [project.optional-dependencies]
 msgpack = [
     "msgpack>=0.6.0",
     "msgpack-numpy>=0.4.6",
+]
+video = [
+    "av>=17.0.0",
 ]
 doc = [
     "Sphinx>=7.3.7; python_version >= '3.10'",
@@ -69,7 +67,7 @@ typecheck = [
     "bandit-sarif-formatter",
 ]
 dev = [
-    "megstore[msgpack,doc,test,lint,typecheck]",
+    "megstore[msgpack,video,doc,test,lint,typecheck]",
 ]
 
 [project.urls]
