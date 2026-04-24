@@ -10,6 +10,7 @@ from megstore.indexed import (
     indexed_msgpack_open,
     indexed_txt_open,
 )
+from megstore.video import VideoReader, VideoWriter, video_open
 
 __all__ = [
     "IndexedJsonlineReader",
@@ -21,4 +22,7 @@ __all__ = [
     "indexed_txt_open",
     "IndexedTxtReader",
     "IndexedTxtWriter",
+    "VideoReader",
+    "VideoWriter",
+    "video_open",
 ]

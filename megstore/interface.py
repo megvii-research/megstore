@@ -24,6 +24,11 @@ VT = TypeVar("VT")  # value type
 
 
 def reopen(file_object) -> Tuple[IO, bool]:
+    """Reopen a file object when possible.
+
+    :param file_object: Source file object to reopen or clone.
+    :returns: A tuple of ``(new_file_object, is_reopen)``.
+    """
     if not hasattr(file_object, "name") or not hasattr(file_object, "mode"):
         return shadow_copy(file_object), False
     file_object = smart_open(file_object.name, file_object.mode)
