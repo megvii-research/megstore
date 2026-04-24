@@ -14,6 +14,7 @@ from typing import (
     Mapping,
     Optional,
     Union,
+    cast,
 )
 
 from megfile import smart_getsize, smart_load_content, smart_open
@@ -733,6 +734,7 @@ class VideoReader(BaseReader["av.VideoFrame"]):  # pytype: disable=not-indexable
         :returns: Stream metadata used for random access.
         """
         file_object, _ = reopen(self._raw_file_object)
+        file_object = cast(BinaryIO, file_object)
         container = self._open_container(file_object)  # pytype: disable=wrong-arg-types
         try:
             stream = _select_video_stream(container, self._requested_stream_index)
@@ -868,7 +870,7 @@ class VideoReader(BaseReader["av.VideoFrame"]):  # pytype: disable=not-indexable
                 preload_ranges=metadata_ranges + (packet_range,),
             )
             container = self._open_container(  # pytype: disable=wrong-arg-types
-                file_object
+                cast(BinaryIO, file_object)
             )
             try:
                 stream = _select_video_stream(container, self._stream_info.stream_index)
@@ -1179,13 +1181,16 @@ def _default_video_read_open(
     :param remote_buffer_size: Remote in-memory cache size.
     :returns: Binary file object.
     """
-    return smart_open(
-        path,
-        mode,
-        share_cache_key=share_cache_key,
-        block_size=remote_block_size,
-        block_forward=remote_block_forward,
-        max_buffer_size=remote_buffer_size,
+    return cast(
+        BinaryIO,
+        smart_open(
+            path,
+            mode,
+            share_cache_key=share_cache_key,
+            block_size=remote_block_size,
+            block_forward=remote_block_forward,
+            max_buffer_size=remote_buffer_size,
+        ),
     )
 
 
