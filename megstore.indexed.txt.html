@@ -21,7 +21,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="0.0.1 - 2025.11.25" href="changelog.html" />
+    <link rel="next" title="About Indexed Module" href="indexed.html" />
     <link rel="prev" title="megstore.indexed.msgpack module" href="megstore.indexed.msgpack.html" /> 
 </head>
 
@@ -61,7 +61,9 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">0.0.1 - 2025.11.25</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexed.html">About Indexed Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">0.0.2 - 2026.08.25</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#id2">0.0.1 - 2025.11.25</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megstore">Github</a></li>
 </ul>
 
@@ -202,20 +204,27 @@ receives each item as parameter</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="megstore.indexed.txt.IndexedTxtWriter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megstore.indexed.txt.</span></span><span class="sig-name descname"><span class="pre">IndexedTxtWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_index_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_fileobj_when_close</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megstore/indexed/txt.html#IndexedTxtWriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">megstore.indexed.txt.</span></span><span class="sig-name descname"><span class="pre">IndexedTxtWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_index_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_fileobj_when_close</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/megstore/indexed/txt.html#IndexedTxtWriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseIndexedWriter</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</p>
 <p>Used to write txt streams with index support</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="megstore.indexed.txt.IndexedTxtWriter.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_index_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_fileobj_when_close</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.__init__" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BinaryIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp_index_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_fileobj_when_close</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the indexed writer.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fp_data</strong> – File object</p></li>
 <li><p><strong>fp_index_path</strong> – Corresponding index file path</p></li>
+<li><p><strong>append_mode</strong> – Whether to append to an existing stream</p></li>
 <li><p><strong>close_fileobj_when_close</strong> – When <strong>True</strong>, close stream on exit;
 when <strong>False</strong>, will not close stream</p></li>
+<li><p><strong>buffer_size</strong> – Number of records to buffer before writing them to the
+data and index streams; <code class="docutils literal notranslate"><span class="pre">0</span></code> disables buffering, default is <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
 </ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">buffer_size</span></code> is less than <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -229,7 +238,7 @@ when <strong>False</strong>, will not close stream</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megstore.indexed.txt.IndexedTxtWriter.append">
-<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.append" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.append" title="Link to this definition"></a></dt>
 <dd><p>Add a record</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -259,14 +268,20 @@ when <strong>False</strong>, will not close stream</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megstore.indexed.txt.IndexedTxtWriter.commit">
-<span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.commit" title="Link to this definition"></a></dt>
-<dd><p>Write already added values to jsonline stream</p>
+<span class="sig-name descname"><span class="pre">commit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.commit" title="Link to this definition"></a></dt>
+<dd><p>Write all added values to the data and index streams.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="megstore.indexed.txt.IndexedTxtWriter.extend">
-<span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">VT</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.extend" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#megstore.indexed.txt.IndexedTxtWriter.extend" title="Link to this definition"></a></dt>
+<dd><p>Add multiple records.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>values</strong> – Records to be added</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="megstore.indexed.txt.IndexedTxtWriter.mode">
@@ -282,7 +297,7 @@ when <strong>False</strong>, will not close stream</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="megstore.indexed.txt.indexed_txt_open">
-<span class="sig-prename descclassname"><span class="pre">megstore.indexed.txt.</span></span><span class="sig-name descname"><span class="pre">indexed_txt_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">path:</span> <span class="pre">str,</span> <span class="pre">mode:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'r',</span> <span class="pre">*,</span> <span class="pre">index_path:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">open_func:</span> <span class="pre">~typing.Callable[[str,</span> <span class="pre">str],</span> <span class="pre">~typing.BinaryIO]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">smart_open&gt;,</span> <span class="pre">index_build_callback:</span> <span class="pre">~typing.Callable[[~typing.Any],</span> <span class="pre">None]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">errors:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'strict'</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megstore.indexed.txt.IndexedTxtReader" title="megstore.indexed.txt.IndexedTxtReader"><span class="pre">IndexedTxtReader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#megstore.indexed.txt.IndexedTxtWriter" title="megstore.indexed.txt.IndexedTxtWriter"><span class="pre">IndexedTxtWriter</span></a></span></span><a class="reference internal" href="_modules/megstore/indexed/txt.html#indexed_txt_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megstore.indexed.txt.indexed_txt_open" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">megstore.indexed.txt.</span></span><span class="sig-name descname"><span class="pre">indexed_txt_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">path:</span> <span class="pre">str,</span> <span class="pre">mode:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'r',</span> <span class="pre">*,</span> <span class="pre">index_path:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">open_func:</span> <span class="pre">~typing.Callable[[str,</span> <span class="pre">str],</span> <span class="pre">~typing.BinaryIO]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">smart_open&gt;,</span> <span class="pre">index_build_callback:</span> <span class="pre">~typing.Callable[[~typing.Any],</span> <span class="pre">None]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">errors:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'strict',</span> <span class="pre">buffer_size:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#megstore.indexed.txt.IndexedTxtReader" title="megstore.indexed.txt.IndexedTxtReader"><span class="pre">IndexedTxtReader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#megstore.indexed.txt.IndexedTxtWriter" title="megstore.indexed.txt.IndexedTxtWriter"><span class="pre">IndexedTxtWriter</span></a></span></span><a class="reference internal" href="_modules/megstore/indexed/txt.html#indexed_txt_open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#megstore.indexed.txt.indexed_txt_open" title="Link to this definition"></a></dt>
 <dd><p>Open an indexed txt file</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -303,6 +318,8 @@ and append (<code class="docutils literal notranslate"><span class="pre">a</span
 Default uses <code class="docutils literal notranslate"><span class="pre">smart_open</span></code></p></li>
 <li><p><strong>index_build_callback</strong> – Callback function for building index</p></li>
 <li><p><strong>errors</strong> – errors parameter for decode</p></li>
+<li><p><strong>buffer_size</strong> – Number of records buffered by a writer before writing to the
+data and index files; <code class="docutils literal notranslate"><span class="pre">0</span></code> disables buffering, default is <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -322,7 +339,7 @@ Returns <code class="docutils literal notranslate"><span class="pre">megstore.In
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="megstore.indexed.msgpack.html" class="btn btn-neutral float-left" title="megstore.indexed.msgpack module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="changelog.html" class="btn btn-neutral float-right" title="0.0.1 - 2025.11.25" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="indexed.html" class="btn btn-neutral float-right" title="About Indexed Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

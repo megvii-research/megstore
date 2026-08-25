@@ -58,7 +58,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="megstore.html">API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">0.0.1 - 2025.11.25</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexed.html">About Indexed Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">0.0.2 - 2026.08.25</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#id2">0.0.1 - 2025.11.25</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/megvii-research/megstore">Github</a></li>
 </ul>
 
@@ -96,7 +98,6 @@
 <a class="reference external image-reference" href="https://pypi.org/project/megstore/"><img alt="Latest version" src="https://img.shields.io/pypi/v/megstore.svg" /></a>
 <a class="reference external image-reference" href="https://pypi.org/project/megstore/"><img alt="Support python versions" src="https://img.shields.io/pypi/pyversions/megstore.svg" /></a>
 <a class="reference external image-reference" href="https://github.com/megvii-research/megstore/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/megstore.svg" /></a>
-<a class="reference external image-reference" href="https://bestpractices.coreinfrastructure.org/projects/5233"><img alt="CII Best Practices" src="https://bestpractices.coreinfrastructure.org/projects/5233/badge" /></a>
 <ul class="simple">
 <li><p>Docs: <a class="reference external" href="http://megvii-research.github.io/megstore">http://megvii-research.github.io/megstore</a></p></li>
 </ul>
@@ -131,6 +132,10 @@ pip3<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39
 <span class="k">with</span> <span class="n">indexed_jsonline_open</span><span class="p">(</span><span class="s2">&quot;data.jsonl&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">})</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">})</span>
+
+<span class="c1"># Buffer up to 1,000 records before writing a batch.</span>
+<span class="k">with</span> <span class="n">indexed_jsonline_open</span><span class="p">(</span><span class="s2">&quot;buffered.jsonl&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">extend</span><span class="p">([{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">}])</span>
 
 <span class="k">with</span> <span class="n">indexed_jsonline_open</span><span class="p">(</span><span class="s2">&quot;data.jsonl&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
     <span class="n">second_item</span> <span class="o">=</span> <span class="n">reader</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
