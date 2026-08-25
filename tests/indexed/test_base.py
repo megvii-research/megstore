@@ -7,6 +7,7 @@ import pytest
 from megstore.indexed.base import (
     INDEX_FILE_FORMAT,
     INDEX_FILE_HEADER_FORMAT,
+    BaseIndexedWriter,
     BaseIndexHandler,
     IndexHandler,
     IndexHandlerReader,
@@ -23,6 +24,62 @@ def generate_index_header(size=0):
     return struct.Struct(INDEX_FILE_HEADER_FORMAT).pack(
         b"I", b"D", b"V", b"1", b"Q", b" ", b" ", b" ", size
     )
+
+
+class WriteCountingBytesIO(BytesIO):
+    """Bytes stream that records the number of write calls."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.write_count = 0
+
+    def write(self, data: bytes) -> int:
+        """Write bytes and increment the write count.
+
+        :param data: Bytes to write
+        :returns: Number of bytes written
+        """
+        self.write_count += 1
+        return super().write(data)
+
+
+class LegacyIndexedWriter(BaseIndexedWriter[int]):
+    """Indexed writer using the legacy ``_append`` extension point."""
+
+    def _append(self, value: int) -> None:
+        """Write one integer as a line.
+
+        :param value: Integer to write
+        """
+        self._file_object.write(str(value).encode("utf-8") + b"\n")
+
+
+class TestBaseIndexedWriter:
+    """Tests for BaseIndexedWriter compatibility behavior."""
+
+    def test_legacy_append_without_buffer(self, fs):
+        """Test that legacy ``_append`` writers work with buffering disabled."""
+        data_stream = BytesIO()
+
+        with LegacyIndexedWriter(data_stream, "data.idx") as writer:
+            writer.extend([1, 20])
+
+        assert data_stream.getvalue() == b"1\n20\n"
+        with open("data.idx", "rb") as index_stream:
+            offsets = [
+                value[0]
+                for value in struct.iter_unpack(
+                    INDEX_FILE_FORMAT,
+                    index_stream.read()[INDEX_FILE_HEADER_SIZE:],
+                )
+            ]
+        assert offsets == [0, 2]
+
+    def test_legacy_append_with_buffer(self, fs):
+        """Test that legacy writers must implement ``_serialize`` for buffering."""
+        with LegacyIndexedWriter(BytesIO(), "data.idx", buffer_size=2) as writer:
+            with pytest.raises(NotImplementedError, match="implement _serialize"):
+                writer.append(1)
 
 
 class TestIndexHandler:
@@ -48,6 +105,21 @@ class TestIndexHandler:
         assert handler.get(0) == 100
         assert handler.get(1) == 200
         assert handler.get(2) == 300
+        handler.close()
+
+    def test_index_handler_writer_extend_uses_one_write(self):
+        """Test that extending a writer writes all indexes as one batch."""
+        file_obj = WriteCountingBytesIO()
+        handler = IndexHandlerWriter(file_obj, typecode=INDEX_FILE_FORMAT)
+
+        handler.extend([100, 200, 300])
+
+        assert file_obj.write_count == 1
+        assert handler.count() == 3
+        assert list(handler.scan()) == [100, 200, 300]
+
+        handler.extend([])
+        assert file_obj.write_count == 1
         handler.close()
 
     def test_index_handler_getitem(self):

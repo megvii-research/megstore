@@ -78,6 +78,30 @@ def test_indexed_txt_writer(fs):
         )
 
 
+def test_indexed_txt_writer_with_buffer(fs):
+    txt_stream = BytesIO()
+    index_path = "key.idx"
+
+    with IndexedTxtWriter(
+        txt_stream,
+        index_path,
+        close_fileobj_when_close=False,
+        buffer_size=3,
+    ) as writer:
+        writer.extend(values[:2])
+        assert txt_stream.getvalue() == b""
+
+        writer.append(values[2])
+        assert txt_stream.getvalue() == b"line1\nline2\nline3 with spaces\n"
+
+        writer.append(values[3])
+        assert txt_stream.getvalue() == b"line1\nline2\nline3 with spaces\n"
+
+    assert txt_stream.getvalue() == (b"line1\nline2\nline3 with spaces\nline4\n")
+    with smart_open(index_path, "rb") as index_reader:
+        assert unpack_indexes(index_reader.read()) == [0, 6, 12, 30]
+
+
 def test_indexed_txt_writer_with_context_manager_without_close(fs):
     txt_stream = BytesIO()
     index_path = "key.idx"
@@ -449,6 +473,17 @@ def test_indexed_txt_open(fs):
     with pytest.raises(ValueError) as error:
         handler = indexed_txt_open("bad-mode.txt", mode="unknow mode")
     assert "unacceptable mode: 'unknow mode'" == str(error.value)
+
+
+def test_indexed_txt_open_with_buffer(fs):
+    with indexed_txt_open("src.txt", mode="w", buffer_size=2) as writer:
+        writer.append("line1")
+        assert writer._file_object.tell() == 0
+        writer.append("line2")
+        assert writer._file_object.tell() == 12
+
+    with indexed_txt_open("src.txt") as reader:
+        assert list(reader) == ["line1", "line2"]
 
 
 def test_indexed_txt_reader_with_errors_param(fs):

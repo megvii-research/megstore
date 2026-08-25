@@ -196,15 +196,25 @@ class IndexedMsgpackWriter(BaseWriter[T], Countable):  # pytype: disable=not-ind
         *,
         append_mode: bool = False,
         close_fileobj_when_close: bool = False,
-    ):
-        """
+        buffer_size: int = 0,
+    ) -> None:
+        """Initialize the indexed msgpack writer.
+
         :param fp_msgpack: msgpack stream, needs to be seekable,
             if it's an s3 address,
             can use ``megstore.utils.smart_limited_seekable_open`` to open
-        :param fp_index: msgpack index stream
+        :param fp_index_path: msgpack index stream path
+        :param append_mode: Whether to append to an existing stream
         :param close_fileobj_when_close: When ``True``, will close the stream on exit;
             when ``False``, will not close the stream
+        :param buffer_size: Number of records to buffer before writing them to the
+            data and index streams; ``0`` disables buffering, default is ``0``
+        :raises ValueError: If ``buffer_size`` is less than ``0``
         """
+        if not isinstance(buffer_size, int) or buffer_size < 0:
+            setattr(self, "__closed__", True)
+            raise ValueError("buffer_size must not be less than 0")
+
         _ensure_compat_msgpack()
 
         super().__init__(
@@ -213,6 +223,8 @@ class IndexedMsgpackWriter(BaseWriter[T], Countable):  # pytype: disable=not-ind
             close_fileobj_when_close=close_fileobj_when_close,
         )
         self._packer = compat_msgpack.Packer()
+        self._buffer_size = buffer_size
+        self._buffer: list[bytes] = []
         self._count = self._read_array_header()
 
         mode = "wb"
@@ -275,17 +287,39 @@ class IndexedMsgpackWriter(BaseWriter[T], Countable):  # pytype: disable=not-ind
                 % (self.name, full_error_message(error))
             )
 
-    def append(self, value: T):
-        offset = self._file_object.tell()
+    def append(self, value: T) -> None:
+        """Add a record.
 
+        :param value: Record to be added
+        """
         value_bytes = self._packer.pack(value)
-        self._file_object.write(value_bytes)
-
-        self._offsets.append(offset)
+        if self._buffer_size == 0:
+            offset = self._file_object.tell()
+            self._file_object.write(value_bytes)
+            self._offsets.append(offset)
+        else:
+            self._buffer.append(value_bytes)
+            if len(self._buffer) >= self._buffer_size:
+                self._flush_buffer()
         self._count += 1
 
-    def commit(self):
+    def _flush_buffer(self) -> None:
+        """Write all buffered records and their offsets."""
+        if not self._buffer:
+            return
+
+        offset = self._file_object.tell()
+        offsets = []
+        for value_bytes in self._buffer:
+            offsets.append(offset)
+            offset += len(value_bytes)
+        self._file_object.write(b"".join(self._buffer))
+        self._offsets.extend(offsets)
+        self._buffer.clear()
+
+    def commit(self) -> None:
         """Write already added values to msgpack stream"""
+        self._flush_buffer()
         self._file_object.seek(0)
         self._write_array_header(self._count)
         self._file_object.seek(0, os.SEEK_END)
@@ -293,15 +327,10 @@ class IndexedMsgpackWriter(BaseWriter[T], Countable):  # pytype: disable=not-ind
 
         self._offsets.commit()
 
-    def _close(self):
-        """Ensure data is written to stream and attempt to close stream"""
+    def _close(self) -> None:
+        """Write pending data, finalize the index, and close the data stream."""
+        self.commit()
         size = get_content_size(self._file_object)
-
-        self._file_object.seek(0)
-        self._write_array_header(self._count)
-
-        # re-seek to tail
-        self._file_object.seek(0, os.SEEK_END)
 
         if self._append_mode is False:
             self._offsets.write_header(size=size)
@@ -428,6 +457,7 @@ def indexed_msgpack_open(
     *,
     index_path: Optional[str] = None,
     open_func: Optional[OpenBinaryIO] = None,
+    buffer_size: int = 0,
 ) -> Union[IndexedMsgpackReader, IndexedMsgpackWriter, IndexedMsgpackHandler]:
     """Open an indexed msgpack file
 
@@ -443,6 +473,9 @@ def indexed_msgpack_open(
     :param index_path: Index file path, default is ``None``
     :param open_func: Open function for msgpack file stream
         Default uses ``smart_open`` with ``limited_seekable=True``
+    :param buffer_size: Number of records buffered by a writer before writing to the
+        data and index files; ``0`` disables buffering, default is ``0``; ignored in
+        read and read-write modes
     :raises ValueError: Invalid mode
     :returns: Returns ``megstore.IndexedMsgpackReader`` when mode is ``r``,
         returns ``megstore.IndexedMsgpackWriter`` when mode is ``w``
@@ -451,6 +484,8 @@ def indexed_msgpack_open(
 
     if mode not in ("r", "w", "a", "w+", "a+"):
         raise ValueError("unacceptable mode: %r" % mode)
+    if mode in ("w", "a") and (not isinstance(buffer_size, int) or buffer_size < 0):
+        raise ValueError("buffer_size must not be less than 0")
 
     if open_func is None:
         open_func = smart_limited_seekable_open
@@ -480,6 +515,7 @@ def indexed_msgpack_open(
             index_path,
             append_mode=append_mode,
             close_fileobj_when_close=True,
+            buffer_size=buffer_size,
         )
     return IndexedMsgpackHandler(
         fp_msgpack_file,

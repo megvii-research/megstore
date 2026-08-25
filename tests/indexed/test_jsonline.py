@@ -121,6 +121,54 @@ def test_indexed_jsonline_writer(fs):
         assert unpack_indexes(index_reader.read()) == [0, 2, 6, 15, 23, 31]
 
 
+def test_indexed_jsonline_writer_with_buffer(fs, mocker):
+    jsonline_stream = BytesIO()
+    index_path = "key.idx"
+
+    with IndexedJsonlineWriter(
+        jsonline_stream,
+        index_path,
+        close_fileobj_when_close=False,
+        buffer_size=3,
+    ) as writer:
+        data_write = mocker.spy(jsonline_stream, "write")
+        index_append = mocker.spy(writer._offsets, "append")
+        index_extend = mocker.spy(writer._offsets, "extend")
+
+        writer.extend(values[:2])
+        assert jsonline_stream.getvalue() == b""
+        assert data_write.call_count == 0
+        assert index_extend.call_count == 0
+
+        writer.extend(values[2:3])
+        assert jsonline_stream.getvalue() == b'0\n1.5\n"string"\n'
+        assert data_write.call_count == 1
+        assert index_extend.call_count == 1
+        assert index_extend.call_args.args == ([0, 2, 6],)
+
+        writer.append(values[3])
+        assert jsonline_stream.getvalue() == b'0\n1.5\n"string"\n'
+
+        writer.commit()
+        assert jsonline_stream.getvalue() == b'0\n1.5\n"string"\n[1,2,3]\n'
+
+        writer.append(values[4])
+        assert jsonline_stream.getvalue() == b'0\n1.5\n"string"\n[1,2,3]\n'
+
+    assert index_extend.call_count == 3
+    assert index_append.call_count == 0
+    assert data_write.call_count == 3
+    assert jsonline_stream.getvalue() == b'0\n1.5\n"string"\n[1,2,3]\n[1,2,3]\n'
+    with smart_open(index_path, "rb") as index_reader:
+        assert unpack_indexes(index_reader.read()) == [0, 2, 6, 15, 23]
+
+
+@pytest.mark.parametrize("buffer_size", [-1, None])
+def test_indexed_jsonline_writer_with_invalid_buffer_size(fs, buffer_size):
+    with pytest.raises(ValueError, match="buffer_size must not be less than 0"):
+        IndexedJsonlineWriter(BytesIO(), "key.idx", buffer_size=buffer_size)
+
+
 def test_indexed_jsonline_writer_with_context_manager_without_close(fs):
     jsonline_stream = BytesIO()
     index_path = "key.idx"
@@ -514,6 +562,23 @@ def test_indexed_jsonline_open(fs):
     with pytest.raises(ValueError) as error:
         handler = indexed_jsonline_open("bad-mode.msg", mode="unknow mode")
     assert "unacceptable mode: 'unknow mode'" == str(error.value)
+
+
+def test_indexed_jsonline_open_with_buffer(fs):
+    with indexed_jsonline_open("src.json", mode="w", buffer_size=2) as writer:
+        writer.append(1)
+        assert writer._file_object.tell() == 0
+        writer.append(2)
+        assert writer._file_object.tell() == 4
+
+    with indexed_jsonline_open("src.json", mode="a", buffer_size=2) as writer:
+        writer.append(3)
+        assert writer._file_object.tell() == 4
+        writer.append(4)
+        assert writer._file_object.tell() == 8
+
+    with indexed_jsonline_open("src.json") as reader:
+        assert list(reader) == [1, 2, 3, 4]
 
 
 def test_short_bytes_under_limit():

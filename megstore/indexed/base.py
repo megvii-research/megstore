@@ -198,7 +198,7 @@ class BaseIndexedReader(BaseReader[T], ABC):
 
 
 class BaseIndexedWriter(BaseWriter[T], ABC):
-    """Used to write indexed jsonline streams"""
+    """Used to write indexed streams."""
 
     def __init__(
         self,
@@ -207,18 +207,30 @@ class BaseIndexedWriter(BaseWriter[T], ABC):
         *,
         append_mode: bool = False,
         close_fileobj_when_close: bool = False,
-    ):
-        """
+        buffer_size: int = 0,
+    ) -> None:
+        """Initialize the indexed writer.
+
         :param fp_data: File object
         :param fp_index_path: Corresponding index file path
+        :param append_mode: Whether to append to an existing stream
         :param close_fileobj_when_close: When **True**, close stream on exit;
             when **False**, will not close stream
+        :param buffer_size: Number of records to buffer before writing them to the
+            data and index streams; ``0`` disables buffering, default is ``0``
+        :raises ValueError: If ``buffer_size`` is less than ``0``
         """
+        if not isinstance(buffer_size, int) or buffer_size < 0:
+            setattr(self, "__closed__", True)
+            raise ValueError("buffer_size must not be less than 0")
+
         super().__init__(
             fp_data,
             append_mode=append_mode,
             close_fileobj_when_close=close_fileobj_when_close,
         )
+        self._buffer_size = buffer_size
+        self._buffer: list[bytes] = []
         mode = "wb"
         if append_mode is True:
             mode = "ab"
@@ -233,30 +245,72 @@ class BaseIndexedWriter(BaseWriter[T], ABC):
         if fp_index.tell() == 0:
             self._offsets.write_header(intrusive=True)
 
-    def append(self, value: T):
+    def append(self, value: T) -> None:
         """Add a record
 
         :param value: Record to be added
         """
+        if self._buffer_size == 0:
+            offset = self._file_object.tell()
+            self._append(value)
+            self._offsets.append(offset)
+        else:
+            self._buffer.append(self._serialize(value))
+            if len(self._buffer) >= self._buffer_size:
+                self._flush_buffer()
+
+    def extend(self, values: Iterable[T]) -> None:
+        """Add multiple records.
+
+        :param values: Records to be added
+        """
+        for value in values:
+            self.append(value)
+
+    def _append(self, value: T) -> None:
+        """Write one record without buffering.
+
+        Legacy subclasses can override this method when ``buffer_size`` is ``0``.
+
+        :param value: Record to be added
+        """
+        self._file_object.write(self._serialize(value))
+
+    def _flush_buffer(self) -> None:
+        """Write all buffered records and their offsets."""
+        if not self._buffer:
+            return
+
         offset = self._file_object.tell()
-        self._append(value)
-        self._offsets.append(offset)
+        offsets = []
+        for value_bytes in self._buffer:
+            offsets.append(offset)
+            offset += len(value_bytes)
+        self._file_object.write(b"".join(self._buffer))
+        self._offsets.extend(offsets)
+        self._buffer.clear()
 
-    @abstractmethod
-    def _append(self, value: T):
-        pass
+    def _serialize(self, value: T) -> bytes:
+        """Serialize a record to bytes.
 
-    def commit(self):
-        """Write already added values to jsonline stream"""
-        self._commit()
+        :param value: Record to serialize
+        :returns: Serialized record
+        :raises NotImplementedError: If the subclass does not support buffering
+        """
+        raise NotImplementedError(
+            "%s must implement _serialize() to use buffered writes"
+            % self.__class__.__qualname__
+        )
+
+    def commit(self) -> None:
+        """Write all added values to the data and index streams."""
+        self._flush_buffer()
+        self._file_object.flush()
         self._offsets.commit()
 
-    @abstractmethod
-    def _commit(self):
-        pass
-
-    def _close(self):
+    def _close(self) -> None:
         """Ensure data is written to stream and attempt to close stream"""
+        self._flush_buffer()
         size = get_content_size(self._file_object)
         super()._close()
         if self._append_mode is False:
@@ -537,6 +591,27 @@ class IndexHandlerWriter(BaseWriter[VT], BaseIndexHandler[VT]):
             page_size=page_size,
             header=header,
         )
+
+    def extend(self, values: Iterable[VT]) -> None:
+        """Append multiple index values with one file write.
+
+        :param values: Index values to append
+        """
+        data = b"".join(
+            # pyre-ignore[16]
+            self._struct.pack(value)
+            for value in values
+        )
+        if not data:
+            return
+
+        file_size = self._content_size  # pyre-ignore[16]
+        if self._header:  # pyre-ignore[16]
+            file_size += self._header.size
+        if self._file_object.tell() != file_size:
+            self._file_object.seek(file_size)
+        self._file_object.write(data)
+        self._content_size += len(data)
 
     def commit(self):
         self._file_object.flush()

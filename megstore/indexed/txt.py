@@ -123,12 +123,13 @@ class IndexedTxtReader(BaseIndexedReader[str]):  # pytype: disable=not-indexable
 class IndexedTxtWriter(BaseIndexedWriter[str]):  # pytype: disable=not-indexable
     """Used to write txt streams with index support"""
 
-    def _append(self, value: str):
-        self._file_object.write(value.encode("utf-8"))
-        self._file_object.write(NEWLINE)
+    def _serialize(self, value: str) -> bytes:
+        """Serialize a string as one UTF-8 line.
 
-    def _commit(self):
-        self._file_object.flush()
+        :param value: String to serialize
+        :returns: Serialized text line
+        """
+        return value.encode("utf-8") + NEWLINE
 
 
 def indexed_txt_open(
@@ -139,6 +140,7 @@ def indexed_txt_open(
     open_func: OpenBinaryIO = smart_open,
     index_build_callback: Optional[Callable[[Any], None]] = None,
     errors: str = "strict",
+    buffer_size: int = 0,
 ) -> Union[IndexedTxtReader, IndexedTxtWriter]:
     """Open an indexed txt file
 
@@ -157,6 +159,8 @@ def indexed_txt_open(
         Default uses ``smart_open``
     :param index_build_callback: Callback function for building index
     :param errors: errors parameter for decode
+    :param buffer_size: Number of records buffered by a writer before writing to the
+        data and index files; ``0`` disables buffering, default is ``0``
     :raises ValueError: Invalid mode
     :returns: Returns ``megstore.IndexedTxtReader`` when mode is ``r``,
         Returns ``megstore.IndexedTxtWriter`` when mode is ``w`` or ``a``
@@ -186,4 +190,5 @@ def indexed_txt_open(
         index_path,
         append_mode=append_mode,
         close_fileobj_when_close=True,
+        buffer_size=buffer_size,
     )
