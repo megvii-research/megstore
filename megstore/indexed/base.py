@@ -597,12 +597,16 @@ class IndexHandlerWriter(BaseWriter[VT], BaseIndexHandler[VT]):
 
         :param values: Index values to append
         """
-        data = b"".join(self._struct.pack(value) for value in values)
+        data = b"".join(
+            # pyre-ignore[16]
+            self._struct.pack(value)
+            for value in values
+        )
         if not data:
             return
 
-        file_size = self._content_size
-        if self._header:
+        file_size = self._content_size  # pyre-ignore[16]
+        if self._header:  # pyre-ignore[16]
             file_size += self._header.size
         if self._file_object.tell() != file_size:
             self._file_object.seek(file_size)
