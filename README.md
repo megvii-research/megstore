@@ -40,6 +40,10 @@ with indexed_jsonline_open("data.jsonl", "w") as writer:
     writer.append({"key": "value"})
     writer.append({"number": 123})
 
+# Buffer up to 1,000 records before writing a batch.
+with indexed_jsonline_open("buffered.jsonl", "w", buffer_size=1000) as writer:
+    writer.extend([{"key": "value"}, {"number": 123}])
+
 with indexed_jsonline_open("data.jsonl", "r") as reader:
     second_item = reader[1]
     second_to_last_items = reader[1:]

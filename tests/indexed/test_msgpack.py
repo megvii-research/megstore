@@ -132,6 +132,78 @@ def test_indexed_msgpack_writer(fs):
         assert index_stream.tell() == 6 * 8 + INDEX_FILE_HEADER_SIZE
 
 
+def test_indexed_msgpack_writer_with_buffer(fs, mocker):
+    msgpack_stream = BytesIO()
+    index_path = "file.msg%s" % INDEX_FILE_POSTFIX
+    packer = msgpack.Packer()
+
+    with IndexedMsgpackWriter(
+        msgpack_stream,
+        index_path,
+        close_fileobj_when_close=False,
+        buffer_size=3,
+    ) as writer:
+        data_write = mocker.spy(msgpack_stream, "write")
+        writer.extend(values[:2])
+        assert msgpack_stream.getvalue() == b"\xdd\x00\x00\x00\x00"
+        assert data_write.call_count == 0
+
+        writer.append(values[2])
+        assert data_write.call_count == 1
+        assert msgpack_stream.getvalue()[5:] == b"".join(
+            packer.pack(value) for value in values[:3]
+        )
+
+        writer.append(values[3])
+        assert msgpack_stream.getvalue()[5:] == b"".join(
+            packer.pack(value) for value in values[:3]
+        )
+        assert writer.tell() == 4
+
+    assert msgpack_stream.getvalue() == b"\xdd\x00\x00\x00\x04" + b"".join(
+        packer.pack(value) for value in values[:4]
+    )
+    with open(index_path, "rb") as index_stream:
+        assert unpack_indexes(index_stream.read()[INDEX_FILE_HEADER_SIZE:]) == [
+            5,
+            6,
+            15,
+            22,
+        ]
+
+
+@pytest.mark.parametrize("buffer_size", [-1, None])
+def test_indexed_msgpack_writer_with_invalid_buffer_size(fs, buffer_size):
+    with pytest.raises(ValueError, match="buffer_size must not be less than 0"):
+        IndexedMsgpackWriter(BytesIO(), "file.msg.idx", buffer_size=buffer_size)
+
+
+def test_indexed_msgpack_writer_keeps_data_open_when_index_finalization_fails(
+    fs, mocker
+):
+    msgpack_stream = BytesIO()
+    writer = IndexedMsgpackWriter(
+        msgpack_stream,
+        "file.msg.idx",
+        close_fileobj_when_close=True,
+    )
+    writer.append(1)
+    write_header = writer._offsets.write_header
+    writer._offsets.write_header = mocker.Mock(
+        side_effect=OSError("index finalization failed")
+    )
+
+    with pytest.raises(OSError, match="index finalization failed"):
+        writer.close()
+
+    assert not msgpack_stream.closed
+    assert not writer.closed
+
+    writer._offsets.write_header = write_header
+    writer.close()
+    assert msgpack_stream.closed
+
+
 def test_indexed_msgpack_writer_tell(fs):
     msgpack_stream = BytesIO()
     index_path = "file.msg%s" % INDEX_FILE_POSTFIX
@@ -265,10 +337,14 @@ def test_indexed_msgpack_writer_append_mode(fs):
         )
 
     msgpack_stream = open("file.msg", "rb+")
-    writer = IndexedMsgpackWriter(msgpack_stream, index_path, append_mode=True)
+    writer = IndexedMsgpackWriter(
+        msgpack_stream, index_path, append_mode=True, buffer_size=2
+    )
     assert writer.tell() == 1
     writer.append(2)
     assert writer.tell() == 2
+    with open("file.msg", "rb") as reader:
+        assert reader.read() == b"\xdd\x00\x00\x00\x01\x01"
     writer.close()
     msgpack_stream.close()
 
@@ -803,3 +879,25 @@ def test_indexed_msgpack_open(fs):
     with pytest.raises(ValueError) as error:
         handler = indexed_msgpack_open("bad-mode.msg", mode="unknow mode")
     assert "unacceptable mode: 'unknow mode'" == str(error.value)
+
+
+def test_indexed_msgpack_open_with_buffer(fs):
+    with indexed_msgpack_open("src.msg", mode="w", buffer_size=2) as writer:
+        writer.append(1)
+        assert writer._file_object.tell() == 5
+        writer.append(2)
+        assert writer._file_object.tell() == 7
+
+    with indexed_msgpack_open("src.msg") as reader:
+        assert list(reader) == [1, 2]
+
+
+def test_indexed_msgpack_open_with_invalid_buffer_does_not_truncate(fs):
+    with open("src.msg", "wb") as writer:
+        writer.write(b"existing data")
+
+    with pytest.raises(ValueError, match="buffer_size must not be less than 0"):
+        indexed_msgpack_open("src.msg", mode="w", buffer_size=-1)
+
+    with open("src.msg", "rb") as reader:
+        assert reader.read() == b"existing data"

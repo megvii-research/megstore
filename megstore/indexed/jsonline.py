@@ -125,12 +125,13 @@ class IndexedJsonlineReader(BaseIndexedReader[T]):
 class IndexedJsonlineWriter(BaseIndexedWriter[T]):
     """Used to write jsonline streams with index support"""
 
-    def _append(self, value: T):
-        self._file_object.write(json.dumps(value))
-        self._file_object.write(NEWLINE)
+    def _serialize(self, value: T) -> bytes:
+        """Serialize a value as one JSON line.
 
-    def _commit(self):
-        self._file_object.flush()
+        :param value: Value to serialize
+        :returns: Serialized JSON line
+        """
+        return json.dumps(value) + NEWLINE
 
 
 def indexed_jsonline_open(
@@ -140,6 +141,7 @@ def indexed_jsonline_open(
     index_path: Optional[str] = None,
     open_func: OpenBinaryIO = smart_open,
     index_build_callback: Optional[Callable[[Any], None]] = None,
+    buffer_size: int = 0,
 ) -> Union[IndexedJsonlineReader, IndexedJsonlineWriter]:
     """Open an indexed jsonline file
 
@@ -157,6 +159,8 @@ def indexed_jsonline_open(
     :param open_func: Open function for jsonline file stream
         Default uses smart_open
     :param index_build_callback: Callback function for building index
+    :param buffer_size: Number of records buffered by a writer before writing to the
+        data and index files; ``0`` disables buffering, default is ``0``
     :raises ValueError: Invalid mode
     :returns: Returns ``IndexedJsonlineReader`` when mode is ``r``,
         Returns ``IndexedJsonlineWriter`` when mode is ``w`` or ``a``
@@ -185,4 +189,5 @@ def indexed_jsonline_open(
         index_path,
         append_mode=append_mode,
         close_fileobj_when_close=True,
+        buffer_size=buffer_size,
     )

@@ -44,6 +44,8 @@ class BaseIndexedReader(BaseReader[T], ABC):
 Key features:
 *   **Append Mode**: Supports appending to existing files and updating the index.
 *   **Index Synchronization**: Ensures the index is updated as data is written.
+*   **Record Buffering**: Supports buffering a configurable number of records before
+    writing them to the data and index files.
 
 ```python
 class BaseIndexedWriter(BaseWriter[T], ABC):
@@ -54,8 +56,28 @@ class BaseIndexedWriter(BaseWriter[T], ABC):
         *,
         append_mode: bool = False,
         close_fileobj_when_close: bool = False,
+        buffer_size: int = 0,
     ):
         ...
+```
+
+Set `buffer_size` to the number of records that should be accumulated in memory. A
+full batch is written automatically; `commit()` and `close()` always write the final
+partial batch. The default value `0` disables buffering and preserves immediate
+record-by-record writing. When buffering is enabled, the offsets for each data batch
+are encoded and written to the index file together. All indexed writers support
+`extend(iterable)`, so callers can submit multiple records without repeatedly calling
+`append()` themselves.
+
+Legacy writer subclasses that override `_append()` remain supported while
+`buffer_size=0`. To enable buffering, subclasses must implement `_serialize()` so the
+base writer can combine complete records into a single data write.
+
+```python
+from megstore import indexed_jsonline_open
+
+with indexed_jsonline_open("data.jsonl", "w", buffer_size=1000) as writer:
+    writer.extend(records)
 ```
 
 ## Index File Format
@@ -78,6 +100,6 @@ The `IndexHandler` class (and its subclasses `IndexHandlerReader` and `IndexHand
 To implement a new indexed format, you typically need to:
 
 1.  Inherit from `BaseIndexedReader` and implement `_build_index` and `_get`.
-2.  Inherit from `BaseIndexedWriter` and implement `_append` and `_commit`.
+2.  Inherit from `BaseIndexedWriter` and implement `_serialize`.
 
-See `megstore.indexed.jsonline` or `megstore.indexed.msgpack` for concrete implementations.
+See `megstore.indexed.jsonline` or `megstore.indexed.txt` for concrete implementations.
